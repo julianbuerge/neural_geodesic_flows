@@ -1,0 +1,13 @@
+todo
+
+playground.py
+
+__pycache__
+
+core/__pycache__
+tests/__pycache__
+applications/__pycache__
+applications/analytical_geometry/__pycache__
+applications/master_thesis/__pycache__
+
+data/logs/wandb
