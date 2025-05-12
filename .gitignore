@@ -2,6 +2,12 @@ todo
 
 playground.py
 
+#dataset file size too large
+data/datasets/Navier*
+applications/master_thesis/PDE*
+
+wandb/
+
 __pycache__
 
 core/__pycache__

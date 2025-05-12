@@ -19,8 +19,8 @@ from core.models import (
 )
 
 from core.template_psi_phi_g_functions_analytical import (
-    phi_S2_normal,
     psi_S2_normal,
+    phi_S2_normal,
     g_S2_normal,
     scalarproduct_S2_normal,
     connection_coeffs_S2_normal,
@@ -38,7 +38,7 @@ from core.template_psi_phi_g_functions_analytical import (
 def unit_test_scalarproduct(seed=0):
 
     tangentbundle = TangentBundle(dim_dataspace = 6, dim_M = 2,
-                                    phi = phi_S2_normal, psi = psi_S2_normal,
+                                    psi = psi_S2_normal, phi = phi_S2_normal,
                                         g = g_S2_normal)
 
     printheading(unit_name="TangentBundle.scalarproduct")
@@ -52,7 +52,7 @@ def unit_test_scalarproduct(seed=0):
 def unit_test_connection_coeffs(seed=0):
 
     tangentbundle = TangentBundle(dim_dataspace = 6, dim_M = 2,
-                                    phi = phi_S2_normal, psi = psi_S2_normal,
+                                    psi = psi_S2_normal, phi = phi_S2_normal,
                                         g = g_S2_normal)
 
     printheading(unit_name="TangentBundle.connection_coeffs")
@@ -66,7 +66,7 @@ def unit_test_connection_coeffs(seed=0):
 def unit_test_geodesic_ODE_function(seed=0):
 
     tangentbundle = TangentBundle(dim_dataspace = 6, dim_M = 2,
-                                    phi = phi_S2_normal, psi = psi_S2_normal,
+                                    psi = psi_S2_normal, phi = phi_S2_normal,
                                         g = g_S2_normal)
 
     printheading(unit_name="TangentBundle.geodesic_ODE_function")
@@ -82,7 +82,7 @@ def unit_test_exp(seed=0):
     exp_correct = lambda z : exp_S2_normal(z,t=1,num_steps=10)
 
     tangentbundle = TangentBundle(dim_dataspace = 6, dim_M = 2,
-                                    phi = phi_S2_normal, psi = psi_S2_normal,
+                                    psi = psi_S2_normal, phi = phi_S2_normal,
                                         g = g_S2_normal)
 
     exp_bundle = lambda z : tangentbundle.exp(z,t=1,num_steps=10)
@@ -99,7 +99,7 @@ def unit_test_exp_return_trajectory(seed=0):
     exp_return_traj_correct = lambda z : exp_return_trajectory_S2_normal(z,t=1,num_steps=10)
 
     tangentbundle = TangentBundle(dim_dataspace = 6, dim_M = 2,
-                                    phi = phi_S2_normal, psi = psi_S2_normal,
+                                    psi = psi_S2_normal, phi = phi_S2_normal,
                                         g = g_S2_normal)
 
     exp_return_traj_bundle = lambda z : tangentbundle.exp_return_trajectory(z,t=1,num_steps=10)
@@ -116,7 +116,7 @@ def unit_test_get_geodesic(seed=0):
     get_geodesic_correct = lambda y : get_geodesic_S2_normal(y,t=1,num_steps=10)
 
     tangentbundle = TangentBundle(dim_dataspace = 6, dim_M = 2,
-                                    phi = phi_S2_normal, psi = psi_S2_normal,
+                                    psi = psi_S2_normal, phi = phi_S2_normal,
                                         g = g_S2_normal)
 
     get_geodesic_bundle = lambda y : tangentbundle.get_geodesic(y,t=1,num_steps=10)
@@ -135,7 +135,7 @@ def unit_test_TangentBundle(seed=0):
     forward = lambda r,t : phi_S2_normal(exp_S2_normal(psi_S2_normal(r), t, num_steps))
 
     tangentbundle = TangentBundle(dim_dataspace = 6, dim_M = 2,
-                                    phi = phi_S2_normal, psi = psi_S2_normal,
+                                    psi = psi_S2_normal, phi = phi_S2_normal,
                                         g = g_S2_normal)
 
     bundle_call = lambda r,t : tangentbundle(r,t,num_steps)
@@ -150,7 +150,7 @@ def unit_test_TangentBundle(seed=0):
 def unit_test_Riemann_curvature(seed=0):
 
     tangentbundle = TangentBundle(dim_dataspace = 6, dim_M = 2,
-                                    phi = phi_S2_normal, psi = psi_S2_normal,
+                                    psi = psi_S2_normal, phi = phi_S2_normal,
                                         g = g_S2_normal)
 
     printheading(unit_name="TangentBundle.Riemann_curvature")
@@ -164,7 +164,7 @@ def unit_test_Riemann_curvature(seed=0):
 def unit_test_Ricci_curvature(seed=0):
 
     tangentbundle = TangentBundle(dim_dataspace = 6, dim_M = 2,
-                                    phi = phi_S2_normal, psi = psi_S2_normal,
+                                    psi = psi_S2_normal, phi = phi_S2_normal,
                                         g = g_S2_normal)
 
     printheading(unit_name="TangentBundle.Ricci_curvature")
@@ -178,7 +178,7 @@ def unit_test_Ricci_curvature(seed=0):
 def unit_test_scalar_curvature(seed=0):
 
     tangentbundle = TangentBundle(dim_dataspace = 6, dim_M = 2,
-                                    phi = phi_S2_normal, psi = psi_S2_normal,
+                                    psi = psi_S2_normal, phi = phi_S2_normal,
                                         g = g_S2_normal)
 
     printheading(unit_name="TangentBundle.scalar_curvature")
@@ -192,7 +192,7 @@ def unit_test_scalar_curvature(seed=0):
 def unit_test_sectional_curvature(seed=0):
 
     tangentbundle = TangentBundle(dim_dataspace = 6, dim_M = 2,
-                                    phi = phi_S2_normal, psi = psi_S2_normal,
+                                    psi = psi_S2_normal, phi = phi_S2_normal,
                                         g = g_S2_normal)
 
     printheading(unit_name="TangentBundle.sectional_curvature")
@@ -215,7 +215,7 @@ def unit_test_Classification():
                     'hidden_sizes' : [16,8]}
 
     tangentbundle = TangentBundle(dim_dataspace = 6, dim_M = 2,
-                                    phi = phi_S2_normal, psi = psi_S2_normal,
+                                    psi = psi_S2_normal, phi = phi_S2_normal,
                                         g = g_S2_normal)
 
     classification = Classification(tangentbundle, nn_arguments)

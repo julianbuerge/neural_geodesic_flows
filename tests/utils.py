@@ -50,11 +50,11 @@ def print_function_evaluation(func, in_shapes, seed = 0):
     key = jax.random.PRNGKey(seed)
     inputs = [jax.random.normal(key, shape) for shape in in_shapes]
 
-    #evaluate both functions with the generated inputs
+    #evaluate the function with the generated inputs
     y = func(*inputs)
 
     print("Evaluation test on random inputs\n")
-    print(f"\nobtained output\n{y}")
+    print(f"obtained output\n{y}")
 
 
 #test func for symmetric and positive definiteness

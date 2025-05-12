@@ -3,7 +3,7 @@ Holds examples of phi, psi, g of several tangentbundles TM.
 
 The notation is x in M, z=(x,v) in TM, r in R^n (immersed).
 
-Some also have a method chartdomain, which returns the bounding values of x_1,...,x_m as well as the names of x_1,...,x_m.
+Each (non Euclidean) manifold has a method chartdomain, returning the limits and names of x_1,...,x_m.
 
 For some manifolds there are more example functions,
 like curvature and so on. These are hard coded such that
@@ -20,11 +20,11 @@ import numpy as np
 """
 real Eucleadian space with chart R^n and metric g = id
 """
-def phi_id(z):
+def psi_id(z):
     r = z
     return r
 
-def psi_id(r):
+def phi_id(r):
     z = r
     return z
 
@@ -46,7 +46,24 @@ g(x) = ( 1         0         )
 """
 def chartdomain_S2_spherical():
     #return theta min, theta max, phi min, phi max, x^0 name, x^1 name
-    return 0.05*jnp.pi, 0.99*jnp.pi, -0.99*jnp.pi, 0.99*jnp.pi, r'\vartheta', r'\varphi'
+    return 0.01*jnp.pi, 0.99*jnp.pi, -0.99*jnp.pi, 0.99*jnp.pi, r'\vartheta', r'\varphi'
+
+#the inverse of the embedding on its image.
+#this was obtained by first inverting the parametrization and then vy^1 = dpara (vctheta, vcphi)^1, vy^3 = dpara (vctheta, vcphi)^3
+#y = (y^1,y^2,y^3,vy^1,vy^2,vy^3)
+def psi_S2_spherical(r):
+
+    x,y,z,vx,vy,vz = r[0],r[1],r[2],r[3],r[4],r[5]
+
+    theta = jnp.arccos(z)
+    phi = jnp.arctan2(y,x)
+
+    v_theta = -vz/jnp.sin(theta)
+    v_phi = -1/jnp.sin(theta)*(vz/(jnp.tan(theta)*jnp.tan(phi)) + vx/jnp.sin(phi))
+
+    z = jnp.array([theta,phi,v_theta, v_phi])
+
+    return z
 
 def parametrization_S2_spherical(x):
 
@@ -72,23 +89,6 @@ def phi_S2_spherical(z):
 
     return r
 
-#the inverse of the embedding on its image.
-#this was obtained by first inverting the parametrization and then vy^1 = dpara (vctheta, vcphi)^1, vy^3 = dpara (vctheta, vcphi)^3
-#y = (y^1,y^2,y^3,vy^1,vy^2,vy^3)
-def psi_S2_spherical(r):
-
-    x,y,z,vx,vy,vz = r[0],r[1],r[2],r[3],r[4],r[5]
-
-    theta = jnp.arccos(z)
-    phi = jnp.arctan2(y,x)
-
-    v_theta = -vz/jnp.sin(theta)
-    v_phi = -1/jnp.sin(theta)*(vz/(jnp.tan(theta)*jnp.tan(phi)) + vx/jnp.sin(phi))
-
-    z = jnp.array([theta,phi,v_theta, v_phi])
-
-    return z
-
 def g_S2_spherical(x):
     return jnp.array([[1,0],[0,jnp.sin(x[0])**2]])
 
@@ -108,6 +108,12 @@ def chartdomain_S2_steregraphic():
     #since R^2 is unbounded, just return some large bounds, x^0 name, x^1 name
     return -10, 10, -10, 10, r'x^0', r'x^1'
 
+#I have calculated derivates manually
+def psi_S2_stereographic(r):
+    x,y,z,vx,vy,vz = r[0],r[1],r[2],r[3],r[4],r[5]
+
+    return jnp.array([x/(1-z),y/(1-z),vx/((1-z)**2) + x*vz/((1-z)**2), vy/((1-z)**2) + y*vz/((1-z)**2)])
+
 #I calculated the derivates manually
 def phi_S2_stereographic(z):
 
@@ -124,12 +130,6 @@ def phi_S2_stereographic(z):
     r5 = 4*x[0]/(h**2)*v[0] + 4*x[1]/(h**2)*v[1]
 
     return jnp.array([r0,r1,r2,r3,r4,r5])
-
-#I have calculated derivates manually
-def psi_S2_stereographic(r):
-    x,y,z,vx,vy,vz = r[0],r[1],r[2],r[3],r[4],r[5]
-
-    return jnp.array([x/(1-z),y/(1-z),vx/((1-z)**2) + x*vz/((1-z)**2), vy/((1-z)**2) + y*vz/((1-z)**2)])
 
 def g_S2_steregraphic(x):
 
@@ -165,23 +165,6 @@ def parametrization_S2_normal(x):
 
     return jnp.array([y1,y2,y3])
 
-#embedding into R^6
-def phi_S2_normal(z):
-
-    x = z[0:2]
-    v = z[2:4]
-
-    #jacobian of the parametrization
-    dparametrization = jax.jacfwd(parametrization_S2_normal)
-
-    #the first three components hold the position and the last three the velocity
-    r = jnp.zeros(6)
-
-    r = r.at[0:3].set(parametrization_S2_normal(x))
-    r = r.at[3:6].set(dparametrization(x) @ v)
-
-    return r
-
 #inverse function from the embedding to the chart
 def psi_S2_normal(r):
 
@@ -206,6 +189,23 @@ def psi_S2_normal(r):
     vxi,veta = v[0],v[1]
 
     return jnp.array([xi,eta,vxi,veta])
+
+#embedding into R^6
+def phi_S2_normal(z):
+
+    x = z[0:2]
+    v = z[2:4]
+
+    #jacobian of the parametrization
+    dparametrization = jax.jacfwd(parametrization_S2_normal)
+
+    #the first three components hold the position and the last three the velocity
+    r = jnp.zeros(6)
+
+    r = r.at[0:3].set(parametrization_S2_normal(x))
+    r = r.at[3:6].set(dparametrization(x) @ v)
+
+    return r
 
 def g_S2_normal(x):
 
@@ -495,3 +495,105 @@ class two_body_Jacobi_metric(eqx.Module):
         g_x = jnp.transpose(df(x)) @ g_yx @ df(x)
 
         return g_x
+
+"""
+two torus T^2 in the chart (0,2pi)_x0 x (0,2pi)_x1
+where x0 is the little circle (radius b) and x1 is the big circle (radius a)
+with metric
+
+g(x) = ( b^2         0        )
+       ( 0    (a + b cos x^0)^2 )
+"""
+b = 0.5
+a = 1.5
+
+def chartdomain_T2():
+    #return x0 min, x0 max, x1 min, x1 max, x^0 name, x^1 name
+    return 0.001*jnp.pi, 1.999*jnp.pi, 0.001*jnp.pi, 1.999*jnp.pi, r'x^0', r'x^1'
+
+#the inverse of the embedding on its image.
+def psi_T2(r):
+
+    x,y,z,vx,vy,vz = r[0],r[1],r[2],r[3],r[4],r[5]
+
+    print("Warning: psi_T2 is not properly implemented, yields 0")
+
+    z = jnp.array([0, 0, 0, 0])
+
+    return z
+
+def parametrization_T2(x):
+
+    return jnp.array([(a + b*jnp.cos(x[0]))*jnp.cos(x[1]), (a + b*jnp.cos(x[0]))*jnp.sin(x[1]), b*jnp.sin(x[0])])
+
+
+def phi_T2(z):
+
+    x = z[0:2]
+    v = z[2:4]
+
+    #take the jacobian of the parametrization
+    dparametrization_T2 = jax.jacfwd(parametrization_T2)
+
+    #the first three components hold the position and the last three the velocity
+    r = jnp.zeros(6)
+
+    r = r.at[0:3].set(parametrization_T2(x))
+    r = r.at[3:6].set(dparametrization_T2(x) @ v)
+
+    return r
+
+def g_T2(x):
+    return jnp.array([[b**2,0],[0,(a + b*jnp.cos(x[0]))**2]])
+
+
+"""
+Gaussian statistical manifold in the chart (-inf,inf)_mu x [0,inf)_sigma
+where mu is the mean and sigma the standard deviation
+with metric
+
+g(x) = ( 1/sigma^2      0     )
+       ( 0          2/sigma^2 )
+"""
+
+def chartdomain_Gaussians1():
+    #return x0 min, x0 max, x1 min, x1 max, x^0 name, x^1 name
+    return -jnp.inf, jnp.inf, 0, jnp.inf, r'\mu', r'\sigma'
+
+#the inverse of the embedding on its image.
+def psi_Gaussians1(r):
+
+    x,y,z,vx,vy,vz = r[0],r[1],r[2],r[3],r[4],r[5]
+
+    print("Warning: psi_Gaussians1 is not properly implemented, yields 0")
+
+    z = jnp.array([0, 0, 0, 0])
+
+    return z
+
+def parametrization_Gaussians1(x):
+
+    mu = x[0]
+    sigma = x[1]
+
+    return jnp.array([mu,sigma])
+
+
+def phi_Gaussians1(z):
+
+    x = z[0:2]
+    v = z[2:4]
+
+    #take the jacobian of the parametrization
+    dparametrization_Gaussians1 = jax.jacfwd(parametrization_Gaussians1)
+
+    #the first three components hold the position and the last three the velocity
+    r = jnp.zeros(6)
+
+    r = r.at[0:3].set(parametrization_Gaussians1(x))
+    r = r.at[3:6].set(dparametrization_Gaussians1(x) @ v)
+
+    return r
+
+def g_Gaussians1(x):
+    return jnp.array([[1/(x[1]**2),0],[0,2/(x[1]**2)]])

@@ -100,12 +100,12 @@ def trajectory_model_analyis(model, trajectories, times):
     print(f"Prediction mean square error {pred_error}\n")
 
 
+#TO DO: Add general visual inference methods
 def input_target_model_visualization(model, inputs, targets, times):
     pass
 
 def trajectory_model_visualization(model, trajectories, times):
     pass
-
 
 def curvature_visualization(model, points):
     pass

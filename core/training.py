@@ -1,6 +1,10 @@
 """
 Contains all methods generic to training.
 
+Specific setup on how data and models get loaded/saved as well as hyperparameter management is
+handled in applications/. The idea is that one could do it differently that we do it in applications/,
+and therefore we do not specify this things here in core/.
+
 Here we will deal with batches of the data.
 
 train_etc methods require a wandb session to have been initialized.

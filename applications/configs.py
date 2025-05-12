@@ -21,8 +21,8 @@ def get_wandb_config(train_dataset_name,
                      model_name,
                      dim_dataspace,
                      dim_M,
-                     phi_arguments,
                      psi_arguments,
+                     phi_arguments,
                      g_arguments,
                      batch_size, #batching only happens on the train dataset
                      train_dataset_size = None, #if left as None it will load the whole dataset
@@ -44,8 +44,8 @@ def get_wandb_config(train_dataset_name,
     config.dim_dataspace = dim_dataspace
     config.dim_M = dim_M
 
-    config.phi_arguments = phi_arguments
     config.psi_arguments = psi_arguments
+    config.phi_arguments = phi_arguments
     config.g_arguments = g_arguments
 
     config.batch_size = batch_size

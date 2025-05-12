@@ -19,7 +19,7 @@ import jax.numpy as jnp
 import equinox as eqx
 
 class identity_diffeomorphism(eqx.Module):
-    #hardcoded identity map. Can be used for phi, psi
+    #hardcoded identity map. Can be used for psi, phi
 
     arguments : dict
     classname: str
@@ -35,7 +35,7 @@ class identity_diffeomorphism(eqx.Module):
         return y
 
 class NN_diffeomorphism(eqx.Module):
-    #Basic neural network that can be used as a default for phi, psi
+    #Basic neural network that can be used as a default for psi, phi
 
     layers: list
 
@@ -110,7 +110,7 @@ class NN_diffeomorphism_for_chart(eqx.Module):
         return y
 
 class NN_split_diffeomorphism(eqx.Module):
-    #split neural network that can be used as a default for phi, psi.
+    #split neural network that can be used as a default for psi, phi.
     #basically we have two independent FCNs NN1 and NN2.
     #if y_in = (x,v) is a location and velocity we output y = (NN1(x), NN2(v))
 
@@ -174,7 +174,7 @@ class NN_split_diffeomorphism(eqx.Module):
         return y
 
 class NN_linear_split_diffeomorphism(eqx.Module):
-    #split neural network that can be used as a default for phi, psi.
+    #split neural network that can be used as a default for psi, phi.
     #basically we have two independent FCNs NN1 and NN2 where NN2 is one linear layer (no activation)
     #if y_in = (x,v) is a location and velocity we output y = (NN1(x), NN2(v))
 
