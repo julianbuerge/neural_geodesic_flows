@@ -4,7 +4,9 @@ playground.py
 
 #dataset file size too large
 data/datasets/Navier*
+data/datasets/MNIST*
 applications/master_thesis/PDE*
+applications/master_thesis/class*
 
 wandb/
 
@@ -15,5 +17,6 @@ tests/__pycache__
 applications/__pycache__
 applications/analytical_geometry/__pycache__
 applications/master_thesis/__pycache__
-
+applications/master_thesis/HNN/__pycache__
 data/logs/wandb
+data/models/master_thesis/class*

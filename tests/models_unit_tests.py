@@ -14,8 +14,7 @@ from tests.utils import (
 )
 
 from core.models import (
-    TangentBundle,
-    Classification,
+    TangentBundle
 )
 
 from core.template_psi_phi_g_functions_analytical import (
@@ -204,27 +203,7 @@ def unit_test_sectional_curvature(seed=0):
                                     seed = seed)
 
 
-def unit_test_Classification():
 
-    t = 1
-    num_steps = 10
-
-    classes = 5
-
-    nn_arguments = {'amount_classes' : classes,
-                    'hidden_sizes' : [16,8]}
-
-    tangentbundle = TangentBundle(dim_dataspace = 6, dim_M = 2,
-                                    psi = psi_S2_normal, phi = phi_S2_normal,
-                                        g = g_S2_normal)
-
-    classification = Classification(tangentbundle, nn_arguments)
-
-    classificaiton_call = lambda y : classification(y,t,num_steps)
-
-    printheading(unit_name=f"Classification.__call__ for {classes} classes")
-
-    test_function_dimensionality(func = classificaiton_call, in_shapes = [(6,)])
 
 ############################### Testing #####################################
 unit_test_scalarproduct(seed=0)
@@ -238,5 +217,3 @@ unit_test_Riemann_curvature(seed=0)
 unit_test_Ricci_curvature(seed=0)
 unit_test_scalar_curvature(seed=0)
 unit_test_sectional_curvature(seed=0)
-
-unit_test_Classification()

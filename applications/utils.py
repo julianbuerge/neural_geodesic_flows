@@ -7,6 +7,7 @@ Collection of auxiliarly methods:
 - to do model training with these methods for data/model managment
 - to do model inference with these methods for data/model managment
 """
+
 import jax
 import jax.numpy as jnp
 
@@ -210,7 +211,7 @@ def perform_training(config,
                             g_NN_initializer = g_initializer)
     else:
 
-        key, key_psi, key_phi, key_g, key_model = jax.random.split(key, 5)
+        key, key_psi, key_phi, key_g = jax.random.split(key, 4)
 
         psi_NN = psi_initializer(config.psi_arguments, key = key_psi)
 

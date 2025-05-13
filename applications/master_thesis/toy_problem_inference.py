@@ -45,6 +45,12 @@ from applications.utils import (
     load_model,
 )
 
+#choose what models inference to show
+show_model_A = False    #input target model, Jacobian split
+show_model_B = False    #input target model, no split
+show_model_C = True     #best model, trajectory and split
+show_model_D = False    #trajectory model, no split
+
 #error analysis shown for the toy problem
 def toy_problem_error_analysis(model_name,
                                psi_initializer,
@@ -303,23 +309,82 @@ def toy_problem_visualizations(model_name, psi_initializer, phi_initializer, g_i
     show_sectional_curvature(model, points_curv)
 
 
-
-
-
 ################################ Inference of model A ################################
 
-model_name = "master_thesis/toy-problem_model-A"
+if show_model_A:
 
-psi_initializer = NN_Jacobian_split_diffeomorphism
-phi_initializer = NN_Jacobian_split_diffeomorphism
-g_initializer = NN_metric
+    model_name = "master_thesis/toy-problem_model-A"
 
-toy_problem_error_analysis(model_name,
-                           psi_initializer,
-                           phi_initializer,
-                           g_initializer)
+    psi_initializer = NN_Jacobian_split_diffeomorphism
+    phi_initializer = NN_Jacobian_split_diffeomorphism
+    g_initializer = NN_metric
 
-toy_problem_visualizations(model_name,
-                           psi_initializer,
-                           phi_initializer,
-                           g_initializer)
+    toy_problem_error_analysis(model_name,
+                               psi_initializer,
+                               phi_initializer,
+                               g_initializer)
+
+    toy_problem_visualizations(model_name,
+                               psi_initializer,
+                               phi_initializer,
+                               g_initializer)
+
+################################ Inference of model B ################################
+
+if show_model_B:
+
+    model_name = "master_thesis/toy-problem_model-B"
+
+    psi_initializer = NN_diffeomorphism
+    phi_initializer = NN_diffeomorphism
+    g_initializer = NN_metric
+
+    toy_problem_error_analysis(model_name,
+                               psi_initializer,
+                               phi_initializer,
+                               g_initializer)
+
+    toy_problem_visualizations(model_name,
+                               psi_initializer,
+                               phi_initializer,
+                               g_initializer)
+
+################################ Inference of model C ################################
+
+if show_model_C:
+
+    model_name = "master_thesis/toy-problem_model-C"
+
+    psi_initializer = NN_Jacobian_split_diffeomorphism
+    phi_initializer = NN_Jacobian_split_diffeomorphism
+    g_initializer = NN_metric
+
+    toy_problem_error_analysis(model_name,
+                               psi_initializer,
+                               phi_initializer,
+                               g_initializer)
+
+    toy_problem_visualizations(model_name,
+                               psi_initializer,
+                               phi_initializer,
+                               g_initializer)
+
+################################ Inference of model D ################################
+
+if show_model_D:
+
+    model_name = "master_thesis/toy-problem_model-D"
+
+    psi_initializer = NN_diffeomorphism
+    phi_initializer = NN_diffeomorphism
+    g_initializer = NN_metric
+
+    toy_problem_error_analysis(model_name,
+                               psi_initializer,
+                               phi_initializer,
+                               g_initializer)
+
+    toy_problem_visualizations(model_name,
+                               psi_initializer,
+                               phi_initializer,
+                               g_initializer)

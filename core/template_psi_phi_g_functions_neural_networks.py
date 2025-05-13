@@ -544,10 +544,11 @@ class NN_conv_diffeomorphism_for_parametrization(eqx.Module):
 
         return y
 
-class NN_pytorches_MNIST_encoder(eqx.Module):
-    #copied architecture from pytorchs MNIST model.
-    #to be used for psi.
-    #this is not a diffeo as maxpool is not continuous (and relu is not differentiable)
+class NN_MNIST_encoder(eqx.Module):
+    #NN to be used for psi when doing MNIST classification.
+    #This is not a diffeomorphism as maxpool is not continuous (and relu is not differentiable).
+
+    #The architecture is almost as in pytorchs MNIST example, found at https://github.com/pytorch/examples/blob/main/mnist/main.py
 
     conv_layers : list
     linear_layers : list
@@ -575,12 +576,12 @@ class NN_pytorches_MNIST_encoder(eqx.Module):
         self.pool_layer = [eqx.nn.MaxPool2d(kernel_size = 2, stride = 2, padding = 0)]
 
         self.linear_layers = [eqx.nn.Linear(9216, 128, key=keys[2]),
-                              eqx.nn.Linear(128, 10, key=keys[3])]
+                              eqx.nn.Linear(128, 20, key=keys[3])]
 
 
         #assign remaining member variables
         self.arguments = arguments
-        self.classname = "NN_pytorches_MNIST_encoder"
+        self.classname = "NN_MNIST_encoder"
 
 
     #expect image of shape (channels, x_res, y_res)
@@ -610,6 +611,45 @@ class NN_pytorches_MNIST_encoder(eqx.Module):
         #return the TM point
         return y
 
+class NN_classification_decoder(eqx.Module):
+    #NN to be used for phi when doing classification.
+    #This NN simply applies a log softmax, and returns the first dim M components,
+    #such that a chart point in TM is turned into a collection of log probabilities,
+    #and the ones from M are returned (requires dim M = amount of classes)
+
+    #BE WARE: This "phi" is not a parametrization. ONLY use for classification.
+
+    dim_M : int
+
+    arguments : dict
+    classname : str
+
+    def __init__(self, arguments, key = jax.random.PRNGKey(0)):
+
+
+        #verify that essential keys are provided
+        required_keys = ['dim_M']
+        for dict_key in required_keys:
+            if dict_key not in arguments:
+                raise ValueError(f"Missing required argument: '{dict_key}'")
+
+        self.dim_M = arguments['dim_M']
+
+        #assign remaining member variables
+        self.arguments = arguments
+        self.classname = "NN_classification_decoder"
+
+
+    #expect point in TM
+    def __call__(self, z):
+
+        #apply a activation to get class log probabilities
+        p = jax.nn.log_softmax(z)
+
+        #restrict to dim M
+        p = p[0:self.dim_M]
+
+        return p
 
 class identity_metric(eqx.Module):
     #the identity metric

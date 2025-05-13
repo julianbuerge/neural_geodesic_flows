@@ -16,14 +16,16 @@ import jax.numpy as jnp
 
 import numpy as np
 
-from core.models import TangentBundle
-
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 from matplotlib.collections import LineCollection
 from mpl_toolkits.mplot3d import Axes3D
 
 from scipy.spatial import ConvexHull
+
+from core.models import (
+    TangentBundle
+)
 
 #apply a method of the model to given input data, return the models outputs
 #data is supposed to be a tuple of jax arrays, exactly as many as the arguments of model_function
@@ -45,7 +47,7 @@ def find_indices(correct_outputs, model_outputs, size = 10):
     errors = jnp.mean((correct_outputs - model_outputs) ** 2, axis=error_axes)
 
     #find the size many indices with the smallest, average, and largest predictive error.
-    sorted_indices = jnp.argsort(predictive_errors)
+    sorted_indices = jnp.argsort(errors)
 
     best_indices = sorted_indices[:size]
     worst_indices = sorted_indices[-size:]
