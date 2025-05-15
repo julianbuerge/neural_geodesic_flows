@@ -5,6 +5,10 @@ Load a trained model and then run analysis functions,
 passing a testdataset.
 """
 
+#set a backend for interactive plotting
+import matplotlib
+matplotlib.use('QtAgg')
+
 #customize the figure default style and format
 import matplotlib.pyplot as plt
 plt.rcParams.update({
@@ -30,26 +34,24 @@ from core.template_psi_phi_g_functions_neural_networks import (
     NN_Jacobian_split_diffeomorphism_for_chart,
     NN_conv_diffeomorphism_for_chart,
     NN_conv_diffeomorphism_for_parametrization,
-    NN_pytorches_MNIST_encoder,
     identity_metric,
     NN_metric,
     NN_metric_regularized,
 )
 
-#get some loading methods to load models and test datasets
 from applications.utils import (
     perform_inference
 )
 
-#define a test dataset
-dataset_name = "half-sphere_inputs-targets_test"
+#define a test dataset (has to be one saved in data/datasets/)
+dataset_name = "half-sphere_trajectories_test"
 dataset_size = 1024
 
-#define a saved model
-model_name = "master_thesis/toy-problem_model-A"
+#define a saved model (has to be one saved in data/models/)
+model_name = "half-sphere"
 
-psi_initializer = NN_Jacobian_split_diffeomorphism
-phi_initializer = NN_Jacobian_split_diffeomorphism
+psi_initializer = NN_diffeomorphism
+phi_initializer = NN_diffeomorphism
 g_initializer = NN_metric
 
 #above assign the initializers of psi, phi and g that the model used,

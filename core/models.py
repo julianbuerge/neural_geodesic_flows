@@ -3,17 +3,11 @@ The class TangentBundle contains the main geometric functionally of NGFs,
 which are determined through the autoencoder psi, phi and the metric g.
 
 For the class to be modular each of these is passable at initialization,
-so that they can known functions or neural networks.
+so that they can be hard coded functions or neural networks.
 
-All methods and calculations are done mathematically, i.e. not with data tensors
-but rather with the exact input format that the methods are mathematically defined for.
-
-----------
-The class Classification is a TangentBundle & a MLP such that
-    TangentBundle.psi --> TangentBundle.exp --> MLP
-is a classification network.
+All methods and calculations are done mathematically, i.e. not with data arrays
+but rather with the exact input format that the methods are mathematically defined for (single points or vectors).
 """
-
 
 import jax
 import jax.numpy as jnp
@@ -49,7 +43,7 @@ class TangentBundle(eqx.Module):
         self.g = g
 
 
-    #give all the high level parameters as a dictionary. this is required when we want to load a saved instance later
+    #give all the high level parameters as a dictionary. this is used in applications/utils to load a saved instance
     def get_high_level_parameters(self):
         params = {
             'dim_dataspace' : self.dim_dataspace,
@@ -92,7 +86,6 @@ class TangentBundle(eqx.Module):
         term2 = jnp.einsum('ki,bai->kab', inverse_g, partial_g)  # 2nd term: partial_a g_ib
         term3 = jnp.einsum('ki,iab->kab', inverse_g, partial_g)  # 3rd term: partial_i g_ab
 
-        #term[j] = jnp.einsum('ki,iab->kab', inverse_g, partial_g) figure this out, maybe vmap lower level thing
         #combine terms to get Gamma^k_ab
         Gamma = 0.5 * (term1 + term2 - term3)
 
@@ -173,7 +166,8 @@ class TangentBundle(eqx.Module):
         return jnp.vstack([z, geodesic_trajectory])
 
 
-    #returns a whole geodesic, in the data space
+    #similar in purpose to exp_return_trajectory above, but here we take an initial y from the dataspace
+    #and return the whole geodesic trajectory in the dataspace
     def get_geodesic(self, y, t, num_steps: int):
 
         z = self.psi(y)
@@ -186,20 +180,20 @@ class TangentBundle(eqx.Module):
         return y_geo
 
 
-    #forward pass. vectorize and jit where called if desired.
-    #expect size of r_in to be of shape (dim_dataspace,) and t of shape () or (1,)
-    def __call__(self, r_in, t, num_steps : int):
+    #forward pass.
+    #expect size of y_in to be of shape (dim_dataspace,) and t of shape () or (1,)
+    def __call__(self, y_in, t, num_steps : int):
 
-        #go from the dataspace r in R^n to the tangentbundle to z in TM of shape (1,dim_M) or (dim_M,)
-        z_in = self.psi(r_in)
+        #go from the dataspace y in R^n to the tangentbundle to z in TM of shape (1,dim_M) or (dim_M,)
+        z_in = self.psi(y_in)
 
         #evaluate the exponential map on z in TM to new z in TM of shape (1,dim_M) or (dim_M,)
         z_out = self.exp(z_in, t, num_steps)
 
-        #immerse z in TM back into the dataspace to r in R^n of shape (1,dim_dataspace) or (dim_dataspace,)
-        r_out = self.phi(z_out)
+        #immerse z in TM back into the dataspace to y in R^n of shape (1,dim_dataspace) or (dim_dataspace,)
+        y_out = self.phi(z_out)
 
-        return r_out
+        return y_out
 
 
     #Riemann curvature tensor. expect input x in M. The output has shape (m,m,m,m)
@@ -230,7 +224,7 @@ class TangentBundle(eqx.Module):
         #G^i_lp G^p_kj
         term4 = jnp.einsum('ilp,pkj->ijkl', Gx, Gx)
 
-        # Combine terms to get the Riemann curvature tensor
+        #combine terms to get the Riemann curvature tensor
         R = term1 - term2 + term3 - term4  # Shape: (m, m, m, m)
 
         return R

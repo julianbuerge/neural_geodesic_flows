@@ -1,0 +1,9 @@
+equinox
+jax
+matplotlib
+numpy
+optax
+scipy
+torch
+wandb
+PyQt6

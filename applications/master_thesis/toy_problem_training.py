@@ -15,7 +15,7 @@ from core.template_psi_phi_g_functions_neural_networks import (
 
 #get the relevant loss functions
 from core.losses import (
-    prediction_reconstruction_loss,
+    input_target_loss,
     trajectory_loss,
 )
 
@@ -57,8 +57,8 @@ psi_initializer = NN_Jacobian_split_diffeomorphism
 phi_initializer = NN_Jacobian_split_diffeomorphism
 g_initializer = NN_metric
 
-train_loss_function = prediction_reconstruction_loss
-test_loss_function = prediction_reconstruction_loss
+train_loss_function = input_target_loss
+test_loss_function = input_target_loss
 
 perform_training(config,
                 psi_initializer,
@@ -93,8 +93,8 @@ psi_initializer = NN_diffeomorphism
 phi_initializer = NN_diffeomorphism
 g_initializer = NN_metric
 
-train_loss_function = prediction_reconstruction_loss
-test_loss_function = prediction_reconstruction_loss
+train_loss_function = input_target_loss
+test_loss_function = input_target_loss
 
 perform_training(config,
                 psi_initializer,
@@ -143,7 +143,7 @@ perform_training(config,
 wandb.init(project="Neural geodesic flows",
            group = "Master thesis: toy problem on S^2_+",
            dir=PATH_LOGS)
-           
+
 config = get_wandb_config(train_dataset_name  = "half-sphere_trajectories_train",
                           test_dataset_name = "half-sphere_trajectories_test",
                           model_name = "master_thesis/toy-problem_model-D",

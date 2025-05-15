@@ -1,0 +1,1 @@
+{"dim_dataspace": [1, 28, 28], "dim_M": 10, "psi_neural_network_classname": "NN_MNIST_encoder", "phi_neural_network_classname": "NN_MNIST_decoder", "g_neural_network_classname": "NN_metric_regularized", "psi_arguments": {"out_size": 20}, "phi_arguments": {"dim_M": 10}, "g_arguments": {"dim_M": 10, "hidden_sizes": [256, 256]}}

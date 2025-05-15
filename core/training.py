@@ -1,17 +1,18 @@
 """
-Contains all methods generic to training.
+Contains methods generic to training, namely:
+- update method, updating a model based on its loss over a training batch
+- train method, iterating through training epochs and calling the update method.
 
-Specific setup on how data and models get loaded/saved as well as hyperparameter management is
-handled in applications/. The idea is that one could do it differently than we do it in applications/,
-and therefore we do not specify these things here in core/.
+Specific setup on how data and models get loaded/saved as well as hyperparameter management is not
+handled here. The idea is that one could do this their prefered way.
+Therefore we don't do it here in core/ but instead in applications/.
 
-Here we will deal with batches of the data.
+the train method requires a wandb session to have been initialized.
 
-train_etc methods require a wandb session to have been initialized.
-
-update_etc methods are the most highlevel methods that get called repeatedly,
-therefore we do just in time compilation on those and only those.
+the update method is the most highlevel method that get called repeatedly,
+therefore we do jit (just in time compilation) on it.
 """
+
 import jax
 import jax.numpy as jnp
 
@@ -72,7 +73,7 @@ def train(model,
             #for logging we look at the loss in a single gradient descend step
             wandb.log({"gradient descend step loss": loss})
 
-            #for printing we look at the average loss in the epoch
+            #for printing we will look at the average loss in the epoch
             epoch_loss += loss
 
 
@@ -82,20 +83,22 @@ def train(model,
             #convert each element in the batch tuple to JAX arrays
             batch = tuple(jnp.array(tensor.numpy()) for tensor in batch)
 
-            test_loss = test_loss_function(model, *batch)
+            #calculate the test loss on the batch
+            loss = test_loss_function(model, *batch)
 
-            #add batch loss to the total epoch loss
+            #add batch loss to the total test loss
             test_loss += loss
 
 
 
-        #average the loss over batches
+
+        #average the losses over batches
         epoch_loss /= (len(train_dataloader))
         test_loss /= (len(test_dataloader))
 
         wandb.log({"test loss": test_loss})
 
-        #print loss for the epoch and test
+        #print losses
         if epoch == 0 or (epoch + 1) % loss_print_frequency == 0:
             print(f"Epoch {epoch + 1}, Train loss: {epoch_loss}, Test loss: {test_loss}")
 

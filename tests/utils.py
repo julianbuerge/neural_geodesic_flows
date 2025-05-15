@@ -30,7 +30,7 @@ def test_function_evaluation(func, correct_func, in_shapes, seed = 0):
 
     #generate random inputs with the correct shapes
     key = jax.random.PRNGKey(seed)
-    inputs = [jax.random.normal(key, shape) for shape in in_shapes]
+    inputs = [jax.random.uniform(key, shape, minval=0.1, maxval=0.9) for shape in in_shapes]
 
     #evaluate both functions with the generated inputs
     y = func(*inputs)
@@ -48,7 +48,7 @@ def print_function_evaluation(func, in_shapes, seed = 0):
 
     #generate random inputs with the correct shapes
     key = jax.random.PRNGKey(seed)
-    inputs = [jax.random.normal(key, shape) for shape in in_shapes]
+    inputs = [jax.random.uniform(key, shape, minval=0.1, maxval=0.9) for shape in in_shapes]
 
     #evaluate the function with the generated inputs
     y = func(*inputs)
@@ -62,7 +62,7 @@ def test_metric_evaluation(func, in_size, seed = 0):
 
     #generate random input for testing
     key = jax.random.PRNGKey(seed)
-    x = jax.random.normal(key, (in_size,))
+    x = jax.random.uniform(key, (in_size,), minval=0.1, maxval=0.9)
 
     #compute the metric tensor
     g = func(x)

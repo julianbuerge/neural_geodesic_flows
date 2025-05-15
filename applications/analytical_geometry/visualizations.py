@@ -12,6 +12,10 @@ import matplotlib.cm as cm
 from matplotlib.collections import LineCollection
 from mpl_toolkits.mplot3d import Axes3D
 
+#set a backend for interactive plotting
+import matplotlib
+matplotlib.use('QtAgg')
+
 #customize the figure default style and format
 import matplotlib.pyplot as plt
 plt.rcParams.update({

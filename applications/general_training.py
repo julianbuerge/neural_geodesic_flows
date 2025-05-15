@@ -2,7 +2,7 @@
 Application of neural geodesic flows:
 - initializes wandb session
 - setup of a training run
-- performs the training run
+- performs the training run (which saves the model if so specified)
 """
 
 import wandb
@@ -18,7 +18,6 @@ from core.template_psi_phi_g_functions_neural_networks import (
     NN_Jacobian_split_diffeomorphism_for_chart,
     NN_conv_diffeomorphism_for_chart,
     NN_conv_diffeomorphism_for_parametrization,
-    NN_pytorches_MNIST_encoder,
     identity_metric,
     NN_metric,
     NN_metric_regularized,
@@ -27,12 +26,10 @@ from core.template_psi_phi_g_functions_neural_networks import (
 #get the relevant loss functions
 from core.losses import (
     reconstruction_loss,
-    prediction_reconstruction_loss,
+    input_target_loss,
     trajectory_reconstruction_loss,
     trajectory_prediction_loss,
-    trajectory_loss,
-    classification_loss,
-    classification_error,
+    trajectory_loss
 )
 
 #get the relevant utility methods
@@ -70,20 +67,20 @@ config = get_wandb_config(train_dataset_name  = "half-sphere_trajectories_train"
                                            "hidden_sizes": [32, 32]},
                           g_arguments = {'dim_M':2,
                                          'hidden_sizes':[32,32]},
-                          batch_size = 25,
-                          train_dataset_size = 100,
-                          test_dataset_size = 30,
+                          batch_size = 64,
+                          train_dataset_size = 512,
+                          test_dataset_size = 128,
                           learning_rate = 1e-3,
                           epochs = 10, loss_print_frequency = 1,
                           continue_training = False,
                           updated_model_name = "",
                           save = True)
 
-psi_initializer = NN_diffeomorphism_for_chart
+psi_initializer = NN_diffeomorphism
 phi_initializer = NN_diffeomorphism
-g_initializer = NN_metric_regularized
+g_initializer = NN_metric
 
-#above, choose the type of neural networks used for psi,phi, g. They have to have exactly two arguments which is a dictionary,
+#above, choose the type of neural networks used for psi,phi, g. They have to have two arguments which is a dictionary,
 #which also has to be saved as a member variable, and a random key.
 #they will get passed the dictionary specified above in the get config variable.
 #if doing continued training of a saved model, assign the initializers of the networks that the model previously used.

@@ -12,25 +12,25 @@ def reconstruction_loss(tangentbundle, inputs, targets, times):
     encoder = jax.vmap(tangentbundle.psi, in_axes = 0)
     decoder = jax.vmap(tangentbundle.phi, in_axes = 0)
 
-    #generatereconstructions
+    #generate reconstructions
     reconstructions_inputs = decoder(encoder(inputs))
     reconstructions_targets = decoder(encoder(targets))
 
-    #measure the quality of the reconstruction
+    #measure the quality of the reconstruction by MSE
     reconstructive_power = jnp.mean((reconstructions_inputs - inputs)**2) + jnp.mean((reconstructions_targets - targets)**2)
 
     #loss
     return reconstructive_power
 
 #expect data of shape (batch_size, mathematical dimension), (batch_size,mathematical dimension), (batch_size)
-def prediction_reconstruction_loss(tangentbundle, inputs, targets, times):
+def input_target_loss(tangentbundle, inputs, targets, times):
 
     #vectorize the functions from the tangentbundle
     exp = jax.vmap(tangentbundle.exp, in_axes = (0,0,None))
     encoder = jax.vmap(tangentbundle.psi, in_axes = 0)
     decoder = jax.vmap(tangentbundle.phi, in_axes = 0)
 
-    #generate predictions and reconstructions
+    #generate predictions
     num_steps = 49
 
     latent_inputs = encoder(inputs)
@@ -40,13 +40,15 @@ def prediction_reconstruction_loss(tangentbundle, inputs, targets, times):
 
     predictions = decoder(latent_predictions)
 
+    #generate reconstructions
     reconstructions_inputs = decoder(latent_inputs)
     reconstructions_targets = decoder(latent_targets)
 
-    #measure the quality of the predicition and reconstruction
+    #measure the quality of the predicition by MSE
     predictive_error = jnp.mean((predictions - targets)**2)
     latent_predictive_error = jnp.mean((latent_predictions - latent_targets)**2)
 
+    #measure the quality of the reconstruction by MSE
     reconstructive_error = jnp.mean((reconstructions_inputs - inputs)**2 + (reconstructions_targets - targets)**2)
 
     #loss as a weighted combination (as they have the same units the weight should be in [0,1])
@@ -122,52 +124,11 @@ def trajectory_prediction_loss(tangentbundle, trajectories, times):
 
 def trajectory_loss(tangentbundle, trajectories, times):
 
-        #find the predictive error
+        #find the predictive error (will be latent + dataspace)
         predictive_error = trajectory_prediction_loss(tangentbundle, trajectories, times)
 
         #find the reconstructive error
         reconstructive_error = trajectory_reconstruction_loss(tangentbundle, trajectories, times)
 
-        #return the average of prediction and reconstruction error
+        #return the sum of prediction and reconstruction error
         return predictive_error + reconstructive_error
-
-#expect data of shape (batch_size, mathematical dimension), (batch_size,), (batch_size)
-def classification_loss(model, inputs, targets, times):
-
-    #vectorize the forward call which we expect to take in a single input
-    forward = jax.vmap(model, in_axes = (0,0,None))
-
-    #choose a integration resolution
-    num_steps = 25
-
-    #generate classifications, expect array of shape (many,amount of classes)
-    log_classifications_probabilities = forward(inputs, times, num_steps)
-
-    #cross entropy loss for classification
-    cross_entropy_loss = -jnp.mean(targets*log_classifications_probabilities)
-
-    #loss
-    return cross_entropy_loss
-
-#expect data of shape (batch_size, mathematical dimension), (batch_size,), (batch_size)
-def classification_error(model, inputs, targets, times):
-
-    #vectorize the forward call which we expect to take in a single input
-    forward = jax.vmap(model, in_axes = (0,0,None))
-
-    #choose a integration resolution
-    num_steps = 25
-
-    #generate classifications, expect array of shape (many,amount of classes)
-    log_classification_probabilities = forward(inputs, times, num_steps)
-
-    #assigned classes shape (many,) (log is monotonously increasing)
-    predicted_classes = jnp.argmax(log_classification_probabilities, axis=1)
-    correct_classes = jnp.argmax(targets, axis = 1)
-
-    errors = (predicted_classes != correct_classes).astype(jnp.float32)  # 1 for incorrect, 0 for correct
-
-    error_rate = jnp.mean(errors)
-
-    #error as a percentage (between 0 and 1)
-    return error_rate

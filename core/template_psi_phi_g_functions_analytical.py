@@ -151,7 +151,7 @@ eta = theta sin(phi).
 The metric is complicated.
 """
 def chartdomain_S2_normal():
-    #these are not definitive bounds but they work
+    #these are not definitive bounds but they work. zero is a singularity.
     return -2, 2, -2, 2, r'$\xi$', r'$\eta$'
 
 def parametrization_S2_normal(x):
@@ -180,7 +180,7 @@ def psi_S2_normal(r):
     #jacobian of the parametrization
     dparametrization = jax.jacfwd(parametrization_S2_normal)
 
-    #now we solve dphi @ (vxi,veta) = (vx,vy,vz) by choosing randomly the last two rows
+    #now we solve dpara @ (vxi,veta) = (vx,vy,vz) by choosing randomly the last two rows
     A = dparametrization(jnp.array([xi,eta]))[1:3,:]
 
     #solve for vxi, veta using only vy,vz
@@ -331,15 +331,15 @@ def exp_return_trajectory_S2_normal(z, t, num_steps : int):
 
     return z_geo
 
-def get_geodesic_S2_normal(y, t, num_steps : int):
+def get_geodesic_S2_normal(r, t, num_steps : int):
 
-    z = psi_S2_normal(y)
+    z = psi_S2_normal(r)
 
     z_geo = exp_return_trajectory_S2_normal(z, t, num_steps)
 
-    y_geo = jax.vmap(phi_S2_normal, in_axes = 0)(z_geo)
+    r_geo = jax.vmap(phi_S2_normal, in_axes = 0)(z_geo)
 
-    return y_geo
+    return r_geo
 
 def Riemann_curvature_S2_normal(x):
 

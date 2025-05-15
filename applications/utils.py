@@ -4,8 +4,8 @@ Collection of auxiliarly methods:
 - to load datasets
 - to create dataloaders
 - to save & load models
-- to do model training with these methods for data/model managment
-- to do model inference with these methods for data/model managment
+- to do model training with these methods for data/model management
+- to do model inference with these methods for data/model management
 """
 
 import jax
@@ -44,8 +44,9 @@ from core.inference import (
 )
 
 
-#load a dataset stored in PATH_DATASETS/name.npz and return it as three jax arrays.
-#Optionally shrink the size by random selection or truncation
+#load a dataset stored in PATH_DATASETS/name.npz and return it as tuple of jax arrays.
+#Optionally shrink the size by random selection or truncation.
+#also return a string mode = 'input-target' or 'trajectory' to know what format the data has
 def load_dataset(name, size=None, random_selection=False, key=jax.random.PRNGKey(0)):
 
     path = PATH_DATASETS/f"{name}.npz"
@@ -67,7 +68,7 @@ def load_dataset(name, size=None, random_selection=False, key=jax.random.PRNGKey
         arrays = tuple(jnp.array(loaded_data[k]) for k in ["trajectories", "times"])
 
     else:
-        raise ValueError(f"Dataset {name} has unrecognized keys: {loaded_data.files}")
+        raise ValueError(f"Dataset {name} has unsupported keys: {loaded_data.files}")
 
     #perform the potential shrinking
     full_size = arrays[0].shape[0]
@@ -100,7 +101,7 @@ def create_dataloader(dataset_name, batch_size, dataset_size=None, random_select
     arrays, mode = load_dataset(name=dataset_name, size=dataset_size, random_selection=random_selection, key=key)
     tensors = tuple(torch.tensor(np.array(arr)) for arr in arrays)
 
-    #account for potential batch case == None (test dataloaders might have this)
+    #account for potential case batch_size == None (test dataloaders might have this)
     if batch_size is None:
         batch_size = tensors[0].shape[0]
 
@@ -148,7 +149,8 @@ def load_model(model_name, psi_initializer, phi_initializer, g_initializer):
     return model
 
 
-#Takes a trained model of type TangentBundle and stores it and its high level parameters
+#Takes a trained model of type eqx.module containg a method get_high_level_parameters (which returns a dictionary)
+#and stores it and its high level parameters
 #under PATH_MODELS/model_name.eqx and PATH_MODELS/model_name_high_level_params.json
 def save_model(model, model_name):
 
@@ -166,7 +168,7 @@ def save_model(model, model_name):
 
 
 #perform the training of a model with the loading and saving methods defined above
-#and with weight and biases for hyperparameter managment.
+#and with weight and biases for hyperparameter management.
 #return the model.
 def perform_training(config,
                     psi_initializer,
@@ -253,6 +255,8 @@ def perform_training(config,
     return model
 
 
+#perform inference of a trained model with the loading methods defined above
+#and inference methods defined in core/inference.py
 def perform_inference(model_name,
                       psi_initializer,
                       phi_initializer,

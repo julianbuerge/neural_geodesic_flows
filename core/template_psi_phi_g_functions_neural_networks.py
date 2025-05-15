@@ -1,6 +1,6 @@
 """
 Collection of equinox.Module neural networks
-intended for passing as psi (chart), phi (parametrization), or g (metric) in class TangentBundle instances.
+intended for passing as psi (encoder = chart), phi (decoder = parametrization), or g (metric) in class TangentBundle instances.
 
 Each neural network satifies:
 -- It has exactly two arguments which are a dictionary called "arguments" and an optional argument key = jax.random.PRNGKey(0)
@@ -111,7 +111,7 @@ class NN_diffeomorphism_for_chart(eqx.Module):
 
 class NN_split_diffeomorphism(eqx.Module):
     #split neural network that can be used as a default for psi, phi.
-    #basically we have two independent FCNs NN1 and NN2.
+    #basically we have two independent MLPs NN1 and NN2.
     #if y_in = (x,v) is a location and velocity we output y = (NN1(x), NN2(v))
 
     layers_x: list  #layers for processing x
@@ -175,7 +175,7 @@ class NN_split_diffeomorphism(eqx.Module):
 
 class NN_linear_split_diffeomorphism(eqx.Module):
     #split neural network that can be used as a default for psi, phi.
-    #basically we have two independent FCNs NN1 and NN2 where NN2 is one linear layer (no activation)
+    #basically we have two independent MLOPs NN1 and NN2 where NN2 is one linear layer (no activation)
     #if y_in = (x,v) is a location and velocity we output y = (NN1(x), NN2(v))
 
     layers_x: list  #layers for processing x
@@ -234,7 +234,7 @@ class NN_linear_split_diffeomorphism(eqx.Module):
 
 class NN_Jacobian_split_diffeomorphism(eqx.Module):
     #split neural network that can be used as a default for psi, phi.
-    #basically we have a FCN NN for the location and its Jacobian for the velocities
+    #basically we have a MLP NN for the location and its Jacobian for the velocities
     #if y_in = (x,v) is a location and velocity we output y = (NN(x), dNN_x(v))
 
     layers_x : list  #layers for processing x
@@ -298,7 +298,7 @@ class NN_Jacobian_split_diffeomorphism_for_chart(eqx.Module):
     #split neural network that can be used as a default for psi.
     #It has a tanh activation in the last layer, to render chart points initially in [-1,1]^m x R^m.
 
-    #basically we have a FCN NN for the location and its Jacobian for the velocities
+    #basically we have a MLP NN for the location and its Jacobian for the velocities
     #if y_in = (x,v) is a location and velocity we output y = (NN(x), dNN_x(v))
 
     layers_x : list  #layers for processing x
@@ -544,115 +544,9 @@ class NN_conv_diffeomorphism_for_parametrization(eqx.Module):
 
         return y
 
-class NN_MNIST_encoder(eqx.Module):
-    #NN to be used for psi when doing MNIST classification.
-    #This is not a diffeomorphism as maxpool is not continuous (and relu is not differentiable).
-
-    #The architecture is almost as in pytorchs MNIST example, found at https://github.com/pytorch/examples/blob/main/mnist/main.py
-
-    conv_layers : list
-    linear_layers : list
-    pool_layer : list
-
-    arguments : dict
-    classname : str
-
-    def __init__(self, arguments, key = jax.random.PRNGKey(0)):
-
-
-        #verify that essential keys are provided
-        required_keys = []
-        for dict_key in required_keys:
-            if dict_key not in arguments:
-                raise ValueError(f"Missing required argument: '{dict_key}'")
-
-
-        #initialize random keys
-        keys = jax.random.split(key, 4)
-
-        self.conv_layers = [eqx.nn.Conv2d(in_channels = 1,out_channels = 32,kernel_size = 3,stride = 1,padding = 0,key=keys[0]),
-                            eqx.nn.Conv2d(in_channels = 32,out_channels = 64,kernel_size = 3,stride = 1,padding = 0,key=keys[1])]
-
-        self.pool_layer = [eqx.nn.MaxPool2d(kernel_size = 2, stride = 2, padding = 0)]
-
-        self.linear_layers = [eqx.nn.Linear(9216, 128, key=keys[2]),
-                              eqx.nn.Linear(128, 20, key=keys[3])]
-
-
-        #assign remaining member variables
-        self.arguments = arguments
-        self.classname = "NN_MNIST_encoder"
-
-
-    #expect image of shape (channels, x_res, y_res)
-    def __call__(self, y):
-
-        #apply the conv layers to the input image to get a (channels_new, x_res_new, y_res_new) shaped image
-        for layer in self.conv_layers:
-
-            y = jax.nn.relu(layer(y))
-
-        #do max pooling
-        y = self.pool_layer[0](y)
-
-        #reshape the image to a point
-        y = jnp.ravel(y)
-
-        #apply the linear layers to the point to get a TM-shaped point
-        for layer in self.linear_layers[:-1]:
-
-            y = jax.nn.relu(layer(y))
-
-        y = self.linear_layers[-1](y)
-
-        #apply a activation to get a class log probability (this is then the TM point)
-        y = jax.nn.log_softmax(y)
-
-        #return the TM point
-        return y
-
-class NN_classification_decoder(eqx.Module):
-    #NN to be used for phi when doing classification.
-    #This NN simply applies a log softmax, and returns the first dim M components,
-    #such that a chart point in TM is turned into a collection of log probabilities,
-    #and the ones from M are returned (requires dim M = amount of classes)
-
-    #BE WARE: This "phi" is not a parametrization. ONLY use for classification.
-
-    dim_M : int
-
-    arguments : dict
-    classname : str
-
-    def __init__(self, arguments, key = jax.random.PRNGKey(0)):
-
-
-        #verify that essential keys are provided
-        required_keys = ['dim_M']
-        for dict_key in required_keys:
-            if dict_key not in arguments:
-                raise ValueError(f"Missing required argument: '{dict_key}'")
-
-        self.dim_M = arguments['dim_M']
-
-        #assign remaining member variables
-        self.arguments = arguments
-        self.classname = "NN_classification_decoder"
-
-
-    #expect point in TM
-    def __call__(self, z):
-
-        #apply a activation to get class log probabilities
-        p = jax.nn.log_softmax(z)
-
-        #restrict to dim M
-        p = p[0:self.dim_M]
-
-        return p
 
 class identity_metric(eqx.Module):
-    #the identity metric
+    #the identity metric (returning the identity matrix)
 
     dim_M : int
 

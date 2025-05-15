@@ -9,6 +9,8 @@ We use three different formats of the data:
 - inputs, targets & times,    expected to be of shapes (many, mathdim) & (many,)
 - trajectories & times,       expected to be of shape (many, trajectory points, mathdim) & (many, trajectory points)
 - points,                     expected to be of shape (many, mathdim)
+
+visual methods are to be implemented still (there we will use find_indices)
 """
 
 import jax

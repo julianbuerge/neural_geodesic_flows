@@ -28,8 +28,6 @@ from core.template_psi_phi_g_functions_neural_networks import (
     NN_Jacobian_split_diffeomorphism_for_chart,
     NN_conv_diffeomorphism_for_chart,
     NN_conv_diffeomorphism_for_parametrization,
-    NN_MNIST_encoder,
-    NN_classification_decoder,
     identity_metric,
     NN_metric,
     NN_metric_regularized,
@@ -190,28 +188,6 @@ def unit_test_NN_conv_diffeomorphism_for_parametrization():
 
     test_function_dimensionality(func = nn, in_shapes = [(2*dim_M,)])
 
-def unit_test_NN_MNIST_encoder():
-
-    arguments = {}
-
-    nn = NN_MNIST_encoder(arguments)
-
-    printheading(unit_name=f"NN_MNIST_encoder.__call__")
-
-    test_function_dimensionality(func = nn, in_shapes = [(1,28,28)])
-
-def unit_test_NN_classification_decoder():
-
-    dim_M = 10
-
-    arguments = {'dim_M':dim_M}
-
-    nn = NN_classification_decoder(arguments)
-
-    printheading(unit_name=f"NN_classification_decoder.__call__ of type {2*dim_M} ---> {dim_M}")
-
-    test_function_dimensionality(func = nn, in_shapes = [(2*dim_M,)])
-
 def unit_test_identity_metric(seed=0):
 
     m = 6
@@ -285,9 +261,6 @@ unit_test_NN_Jacobian_split_diffeomorphism_for_chart()
 
 unit_test_NN_conv_diffeomorphism_for_chart()
 unit_test_NN_conv_diffeomorphism_for_parametrization()
-
-unit_test_NN_MNIST_encoder()
-unit_test_NN_classification_decoder()
 
 unit_test_identity_metric(seed=0)
 unit_test_NN_metric(seed=0)

@@ -7,6 +7,10 @@ https://doi.org/10.3929/ethz-b-000733724
 import jax
 import jax.numpy as jnp
 
+#set a backend for interactive plotting
+import matplotlib
+matplotlib.use('QtAgg')
+
 #customize the figure default style and format
 import matplotlib.pyplot as plt
 plt.rcParams.update({
