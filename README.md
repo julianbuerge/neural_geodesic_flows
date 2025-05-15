@@ -64,7 +64,7 @@ source ngfs-env/bin/activate  #activate the environment
 ```
 then cloning this repository:
 ```bash
-git clone git@github.com:julianbuerge/neural_geodesic_flows.git
+git clone https://github.com/julianbuerge/neural_geodesic_flows.git
 ```
 and from the cloned directory installing all requirements:
 ```
