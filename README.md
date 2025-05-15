@@ -122,7 +122,7 @@ The model in `applications/master_thesis/HNN/trained_hnn.tar` was trained using 
 If you find Neural geodesic flows useful and use them in your own work, please use the following citation:
 
 ```
-@mastersthesis{mythesis,
+@mastersthesis{NGF_masterthesis,
   title        = {Neural geodesic flows},
   author       = {Julian Bürge},
   year         = 2025,
