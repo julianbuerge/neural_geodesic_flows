@@ -75,6 +75,12 @@ pip install -r requirements.txt
 
 `python3 -m applications.general_training` will train and save a NGF model. By way of a quick example it is setup to train on a small two sphere dataset with few epochs (so don't expect great performance). The trained model can be analyzed with the module `applications/general_inference.py`. If you want to make this model good, increase the dataset size (the file contains 16384 samples) and amount of epochs in `applications/general_training.py`.
 
+`applications/analytical_geometry` contains some modules that use the `TangetBundle` code to do computational differential geometry with example functions `psi,phi,g` (no learning involved). Run for instance
+```
+python3 -m applications.analytical_geometry.two_torus_geodesics
+```
+to show an example geodesic on the two torus.
+
 ### Training your own model
 Both modules
 ```
