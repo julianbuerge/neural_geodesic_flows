@@ -48,7 +48,7 @@ The theoretical properties of neural geodesic flows include
 * The way the make predictions is interpretable
 
 ### Future work
-Currently the latent tangent bundle gets encoded by a single function `psi` which in terms of differential geometry means it uses a single chart atlas. This greatly restricts the complexity of the domain of a dataspace evolution that this NGF implementation can learn. We therefore plan to add a multi chart encoder and decoder. [Floryan & Graham 2022](https://doi.org/10.1038/s42256-022-00575-4) have done this very successfully for a latent manifold with a flexible neural ODE (rather than a geodesic one).
+Currently the latent tangent bundle gets encoded by a single function `psi` which in terms of differential geometry means it uses a single chart atlas. This greatly restricts the complexity of the domain of a dataspace evolution that this NGF implementation can learn. We therefore plan to add a multi chart encoder and decoder. [Floryan & Graham 2022](https://doi.org/10.1038/s42256-022-00575-4) have done this very successfully for a latent manifold with a flexible neural ODE (rather than a geodesic one). I have begun implementing a multi chart atlas ngf model, in `experimental/`.
 
 ## Getting started
 
@@ -73,7 +73,11 @@ pip install -r requirements.txt
 
 ### Running a minimal example
 
-`python3 -m applications.general_training` will train and save a NGF model. By way of a quick example it is setup to train on a small two sphere dataset with few epochs (so don't expect great performance). The trained model can be analyzed with the module `applications/general_inference.py`. If you want to make this model good, increase the dataset size (the file contains 16384 samples) and amount of epochs in `applications/general_training.py`.
+`python3 -m applications.general_training` will train and save a NGF model. By way of a quick example it is setup to train on a small two sphere dataset with few epochs (so don't expect great performance). The trained model can be analyzed with the module `applications/general_inference.py`. If you want to make this model good, increase the dataset size (the file contains 16384 samples) and amount of epochs in `applications/general_training.py`. Some more details on this model:
+ * The training data is a collection of geodesic trajectories on the two sphere embedded in $\mathbb{R}^3$ consisting of positions (on the sphere) and velocities (tangent to the sphere), so that the data are 6 dimensional.
+ * The model encodes a given 6 dimensional trajectory initial point to a 4 dimensional latent tangent bundle (2d manifold with 2d tangents) where it evolves it along a geodesic until time $t=1$. The metric is given by a neural network and so this evolution is learnt. The so obtained geodesic gets decoded into the 6d space.
+ * In the inference the difference between the learnt and the given geodesics are analyzed.
+ * In this special case, meant as a proof of concept, the data dynamics are themselves geodesic, but in general only the latent evolution is geodesic while the data dynamics are free to be of any kind (see the [master thesis](https://doi.org/10.3929/ethz-b-000733724) for exact assumptions).
 
 `applications/analytical_geometry` contains some modules that use the `TangetBundle` code to do computational differential geometry with example functions `psi,phi,g` (no learning involved). Run for instance
 ```
@@ -124,11 +128,11 @@ If you find Neural geodesic flows useful and use them in your own work, please u
 ```
 @mastersthesis{NGF_masterthesis,
   title        = {Neural geodesic flows},
-  author       = {Julian Bürge},
+  author       = {Julian B\"urge},
   year         = 2025,
   month        = {March},
   note         = {Published in the ETH research collection at \url{https://doi.org/10.3929/ethz-b-000733724}},
-  school       = {ETH Zürich},
+  school       = {ETH Z\"urich},
   type         = {Master thesis}
 }
 ```
