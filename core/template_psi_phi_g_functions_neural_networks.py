@@ -263,7 +263,7 @@ class NN_Jacobian_split_diffeomorphism(eqx.Module):
         self.classname = "NN_Jacobian_split_diffeomorphism"
 
     def nn(self, x):
-        # Pass x_in through NN1
+        #pass x_in through NN1
         for layer in self.layers_x[:-1]:
             x = layer(x)
             x = jax.nn.tanh(x)

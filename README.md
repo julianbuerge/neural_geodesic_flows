@@ -111,7 +111,16 @@ To reproduce the training or inference of the case studies from the thesis, find
 ```
 python3 -m applications.master_thesis.two_body_problem_inference
 ```
-will produce the numerical and visual results of the two body problem case study as they are shown in the thesis. Important: Make sure your environment meets the `applications/master_thesis/additional_requirements.txt`. Note that there are booleans in `toy_problem_inference.py` and `two_body_problem_inference.py` to decide which models are shown.
+will produce the numerical and visual results of the two body problem case study as they are shown in the thesis. Important: Make sure your environment meets the `applications/master_thesis/additional_requirements.txt`. Note that there are booleans in `toy_problem_inference.py` and `two_body_problem_inference.py` to decide which models are shown. Also note that the results in the thesis were obtained by running the code with the following versions of the main libraries
+```
+jax 0.4.33
+equinox 0.11.7
+optax 0.2.3
+numpy 2.1.1
+scipy 1.14.1
+torch 2.5.1
+```
+In later versions of JAX some of the architectural choices need to be changed in order to get convergent models (see the issue "Convergence in different JAX versions").
 
 ### Third-party code
 

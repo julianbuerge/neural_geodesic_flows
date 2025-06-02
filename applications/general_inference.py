@@ -48,11 +48,11 @@ dataset_name = "half-sphere_trajectories_test"
 dataset_size = 1024
 
 #define a saved model (has to be one saved in data/models/)
-model_name = "half-sphere"
+model_name = "half-sphere-quick"
 
 psi_initializer = NN_diffeomorphism
 phi_initializer = NN_diffeomorphism
-g_initializer = NN_metric
+g_initializer = NN_metric_regularized
 
 #above assign the initializers of psi, phi and g that the model used,
 #their names are written in the model_name_high_level_params.json file

@@ -82,9 +82,9 @@ class TangentBundle(eqx.Module):
 
         #formula (summation over i) Gamma^k_ab = 1/2 g^ki ( partial_a g_ib + partial_b g_ai - partial_i g_ab)
         #compute each term of shape (m,m,m)
-        term1 = jnp.einsum('ki,aib->kab', inverse_g, partial_g)  # 1st term: partial_b g_ia
-        term2 = jnp.einsum('ki,bai->kab', inverse_g, partial_g)  # 2nd term: partial_a g_ib
-        term3 = jnp.einsum('ki,iab->kab', inverse_g, partial_g)  # 3rd term: partial_i g_ab
+        term1 = jnp.einsum('ki,aib->kab', inverse_g, partial_g, optimize="optimal")  # 1st term: partial_b g_ia
+        term2 = jnp.einsum('ki,bai->kab', inverse_g, partial_g, optimize="optimal")  # 2nd term: partial_a g_ib
+        term3 = jnp.einsum('ki,iab->kab', inverse_g, partial_g, optimize="optimal")  # 3rd term: partial_i g_ab
 
         #combine terms to get Gamma^k_ab
         Gamma = 0.5 * (term1 + term2 - term3)
@@ -104,7 +104,7 @@ class TangentBundle(eqx.Module):
 
         dxbydt = v
 
-        dvbydt = -jnp.einsum('kab, a, b -> k', Gamma, v, v) # -Gamma^k_{ab} v^a v^b
+        dvbydt = -jnp.einsum('kab, a, b -> k', Gamma, v, v, optimize="optimal") # -Gamma^k_{ab} v^a v^b
 
         return jnp.concatenate((dxbydt,dvbydt))
 
@@ -213,16 +213,16 @@ class TangentBundle(eqx.Module):
         #compute each summand in the Riemann curvature tensor formula
 
         #partial_k G^i_lj
-        term1 = jnp.einsum('kilj->ijkl',partialG)
+        term1 = jnp.einsum('kilj->ijkl',partialG, optimize="optimal")
 
         #partial_l G^i_kj
-        term2 =  jnp.einsum('likj->ijkl',partialG)
+        term2 =  jnp.einsum('likj->ijkl',partialG, optimize="optimal")
 
         #G^i_kp G^p_lj
-        term3 = jnp.einsum('ikp,plj->ijkl', Gx, Gx)
+        term3 = jnp.einsum('ikp,plj->ijkl', Gx, Gx, optimize="optimal")
 
         #G^i_lp G^p_kj
-        term4 = jnp.einsum('ilp,pkj->ijkl', Gx, Gx)
+        term4 = jnp.einsum('ilp,pkj->ijkl', Gx, Gx, optimize="optimal")
 
         #combine terms to get the Riemann curvature tensor
         R = term1 - term2 + term3 - term4  # Shape: (m, m, m, m)
@@ -234,7 +234,7 @@ class TangentBundle(eqx.Module):
 
         R = self.Riemann_curvature(x)
 
-        Ric = jnp.einsum('lilj->ij',R)
+        Ric = jnp.einsum('lilj->ij',R, optimize="optimal")
 
         return Ric
 
@@ -247,7 +247,7 @@ class TangentBundle(eqx.Module):
         #get the inverse metric g^ij partial_i  tensor partial_j
         g_inv = jnp.linalg.inv(self.g(x))
 
-        scal = jnp.einsum('ij,ij->',g_inv,Ric)
+        scal = jnp.einsum('ij,ij->',g_inv,Ric, optimize="optimal")
 
         return scal
 

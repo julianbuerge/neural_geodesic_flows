@@ -56,7 +56,7 @@ wandb.init(project="Neural geodesic flows",
 
 config = get_wandb_config(train_dataset_name  = "half-sphere_trajectories_train",
                           test_dataset_name = "half-sphere_trajectories_test",
-                          model_name = "half-sphere",
+                          model_name = "half-sphere-quick",
                           dim_dataspace = 6,
                           dim_M = 2,
                           psi_arguments = {"in_size": 6,
@@ -69,7 +69,7 @@ config = get_wandb_config(train_dataset_name  = "half-sphere_trajectories_train"
                                          'hidden_sizes':[32,32]},
                           batch_size = 64,
                           train_dataset_size = 512,
-                          test_dataset_size = 128,
+                          test_dataset_size = 256,
                           learning_rate = 1e-3,
                           epochs = 10, loss_print_frequency = 1,
                           continue_training = False,
@@ -78,7 +78,7 @@ config = get_wandb_config(train_dataset_name  = "half-sphere_trajectories_train"
 
 psi_initializer = NN_diffeomorphism
 phi_initializer = NN_diffeomorphism
-g_initializer = NN_metric
+g_initializer = NN_metric_regularized
 
 #above, choose the type of neural networks used for psi,phi, g. They have to have two arguments which is a dictionary,
 #which also has to be saved as a member variable, and a random key.

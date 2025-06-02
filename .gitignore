@@ -1,6 +1,7 @@
 todo
 
 playground.py
+applications/generate_gif_pngs.py
 
 #dataset file size too large
 data/datasets/Navier*
