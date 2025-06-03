@@ -18,3 +18,5 @@ applications/analytical_geometry/__pycache__
 applications/master_thesis/__pycache__
 applications/master_thesis/HNN/__pycache__
 data/logs/wandb
+data/models/for_gif
+images/for_gif
