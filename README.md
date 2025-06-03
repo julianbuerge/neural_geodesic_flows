@@ -5,7 +5,7 @@ neural ODEs and computational differential geometry. [This master thesis](https:
 written by Julian Bürge, supervised through [Dr. Ben Moseley](https://github.com/benmoseley), explains them in detail.
 
 <p align="center">
-    <img src="images/NGF_example.png" alt="Example of a NGF model predicting geodesic dynamics on a sphere." width=100%>
+    <img src="images/training.gif" alt="Example of a NGF model predicting geodesic dynamics on a sphere." width=90%>
 </p>
 
 - [Short explanation](#short-explanation)
