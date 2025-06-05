@@ -2,6 +2,7 @@ todo
 
 playground.py
 applications/generate_gif_pngs.py
+applications/JAX_version_tests.py
 
 #dataset file size too large
 data/datasets/Navier*

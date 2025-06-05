@@ -1,69 +1,19 @@
 import jax
 import jax.numpy as jnp
 
-
-class DomainPoint(NamedTuple):
-    index: int
-    y_value: jnp.ndarray
-    kind: str  # "interior", "boundary", or "centroid"
-    neighbors: List[int] = []
-
-
-class CoordinateDomain:
-
-    def __init__(self, points: list[DomainPoint]):
-
-        self.points = {p.index: p for p in points if p.index >= 0}
-
-        self.centroid = next(p.y_value for p in points if p.kind == "centroid")
-
-        self.interior_indices = [p.index for p in points if p.kind == "interior"]
-
-        self.adjacency = {p.index: set(p.neighbors) for p in points if p.index >= 0}
-
-        self.last_closest_idy: Optional[int] = None
-
-    def find_closest_point_bfs(self, y: jnp.ndarray):
-
-        if self.last_closest_idy is None:
-            queue = list(self.points.keys())
-        else:
-            queue = [self.last_closest_idy]
-
-        visited = set()
-        best_idy = None
-        best_dist = jnp.inf
-
-        while queue:
-            current = queue.pop(0)
-            if current in visited:
-                continue
-            visited.add(current)
-
-            x = self.points[current].y_value
-            dist = jnp.linalg.norm(x - y)
-            if dist < best_dist:
-                best_dist = dist
-                best_idy = current
-
-            for neighbor in self.adjacency.get(current, []):
-                if neighbor not in visited:
-                    queue.append(neighbor)
-
-
-        self.last_closest_idy = best_idy
-
-        return best_idy
+import equinox as eqx
 
 class Chart(eqx.Module):
 
-    coordinate_domain : CoordinateDomain
+    coordinate_domain : jnp.ndarray
 
     psi: callable
     phi: callable
     g: callable
 
-    def __init__(self, psi , phi , g):
+    def __init__(self, coordinate_domain, psi , phi , g):
+
+        self.coordinate_domain = coordinate_domain
 
         self.psi = psi
         self.phi = phi
@@ -78,9 +28,9 @@ class Chart(eqx.Module):
 
         inverse_g = jnp.linalg.inv(self.g(x))
 
-        term1 = jnp.einsum('ki,aib->kab', inverse_g, partial_g)  # 1st term: partial_b g_ia
-        term2 = jnp.einsum('ki,bai->kab', inverse_g, partial_g)  # 2nd term: partial_a g_ib
-        term3 = jnp.einsum('ki,iab->kab', inverse_g, partial_g)  # 3rd term: partial_i g_ab
+        term1 = jnp.einsum('ki,aib->kab', inverse_g, partial_g, optimize="optimal")  # 1st term: partial_b g_ia
+        term2 = jnp.einsum('ki,bai->kab', inverse_g, partial_g, optimize="optimal")  # 2nd term: partial_a g_ib
+        term3 = jnp.einsum('ki,iab->kab', inverse_g, partial_g, optimize="optimal")  # 3rd term: partial_i g_ab
 
         Gamma = 0.5 * (term1 + term2 - term3)
 
@@ -97,10 +47,11 @@ class Chart(eqx.Module):
 
         dxbydt = v
 
-        dvbydt = -jnp.einsum('kab, a, b -> k', Gamma, v, v) # -Gamma^k_{ab} v^a v^b
+        dvbydt = -jnp.einsum('kab, a, b -> k', Gamma, v, v, optimize="optimal") # -Gamma^k_{ab} v^a v^b
 
         return jnp.concatenate((dxbydt,dvbydt))
 
+    #this is a single Runge Kutta 4 time step of the geodesic equation
     def exp_single_time_step(self, z, dt):
 
         k1 = self.geodesic_ODE_function(z)
@@ -124,6 +75,37 @@ class Chart(eqx.Module):
 
         return z
 
+    #same as exp above, but this version returns the whole geodesic trajectory
+    def exp_return_trajectory(self, z, t, num_steps: int):
+
+        #step function needed for the jax.lax.scan call, now returns each intermediate z value
+        def step_function(z, _):
+            z_next = self.exp_single_time_step(z, dt)
+            return z_next, z_next  # Return z_next as both state and output for lax.scan to collect it
+
+        #find dt based on the number of steps
+        dt = t / num_steps
+
+        #use jax.lax.scan to run the integration loop, obtaining the whole geodesic trajectory. the last point SHOULD correspond to exp of the same input
+        _, geodesic_trajectory = jax.lax.scan(step_function, z, None, length=num_steps)
+
+        #return the whole geodesic trajectory, shape (1 + num_steps, dim M)
+        return jnp.vstack([z, geodesic_trajectory])
+
+
+    #similar in purpose to exp_return_trajectory above, but here we take an initial y from the dataspace
+    #and return the whole geodesic trajectory in the dataspace
+    def get_geodesic(self, y, t, num_steps: int):
+
+        z = self.psi(y)
+
+        z_geo = self.exp_return_trajectory(z, t, num_steps)
+
+        y_geo = jax.vmap(self.phi, in_axes = 0)(z_geo)
+
+        #return the whole geodesic, shape (1 + num_steps, dim dataspace)
+        return y_geo
+
     def __call__(self, y_in, t, num_steps : int):
 
 
@@ -135,6 +117,7 @@ class Chart(eqx.Module):
 
         return y_out
 
+"""
 #this method turns a manifold given as a collection of data points into
 #a partition of clusters. It then extends the clusters to overlaping clusters.
 #these are the domains. It returns these domains, with each point marked as possibly multiple of the following
@@ -156,7 +139,7 @@ def create_coordinate_domains(dataset, k, extension_degree):
     clusters = k_means(dataset, k)
 
     #extend all clusters
-    ...extend_cluster(cluster, extension_degree)...
+    #...extend_cluster(cluster, extension_degree)...
 
 
     return extended_clusters
@@ -166,7 +149,7 @@ def create_coordinate_domains(dataset, k, extension_degree):
 #assign a psi,phi,g function to each, based on some class initializer (which has to be an eqx.Module taking two arguments: a dictionary and a key)
 #and then return a tuple of Charts:
 #atlas = (chart_1, chart_2, ..., chart_k)
-def initialize_chart_functions(coordinatedomains: tuple[CoordinateDomain],
+def initialize_chart_functions(coordinatedomains: tuple,
                                psi_initializer: callable,
                                phi_initializer: callable,
                                g_initializer: callable,
@@ -195,3 +178,4 @@ def initialize_chart_functions(coordinatedomains: tuple[CoordinateDomain],
     atlas = tuple(charts)
 
     return atlas
+"""

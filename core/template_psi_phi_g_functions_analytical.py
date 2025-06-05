@@ -46,7 +46,7 @@ g(x) = ( 1         0         )
 """
 def chartdomain_S2_spherical():
     #return theta min, theta max, phi min, phi max, x^0 name, x^1 name
-    return 0.01*jnp.pi, 0.99*jnp.pi, -0.99*jnp.pi, 0.99*jnp.pi, r'\vartheta', r'\varphi'
+    return 0.001*jnp.pi, 0.999*jnp.pi, -0.999*jnp.pi, 0.999*jnp.pi, r'\vartheta', r'\varphi'
 
 #the inverse of the embedding on its image.
 #this was obtained by first inverting the parametrization and then vy^1 = dpara (vctheta, vcphi)^1, vy^3 = dpara (vctheta, vcphi)^3
@@ -104,41 +104,74 @@ g(x) = ( 4/h^2     0  )
 
 where h(x) = 1 + x0^2 + x1^2
 """
-def chartdomain_S2_steregraphic():
+def chartdomain_S2_stereographic():
     #since R^2 is unbounded, just return some large bounds, x^0 name, x^1 name
-    return -10, 10, -10, 10, r'x^0', r'x^1'
+    return -1.2, 1.2, -1.2, 1.2, r'x^0', r'x^1'
 
-#I have calculated derivates manually
+#I have calculated derivates manually. These exclude the north pole
 def psi_S2_stereographic(r):
-    x,y,z,vx,vy,vz = r[0],r[1],r[2],r[3],r[4],r[5]
 
-    return jnp.array([x/(1-z),y/(1-z),vx/((1-z)**2) + x*vz/((1-z)**2), vy/((1-z)**2) + y*vz/((1-z)**2)])
+        x,y,z,vx,vy,vz = r[0],r[1],r[2],r[3],r[4],r[5]
 
-#I calculated the derivates manually
+        return jnp.array([x/(1-z),y/(1-z),vx/(1-z) + x*vz/((1-z)**2), vy/(1-z) + y*vz/((1-z)**2)])
+
+#these exclude the south pole instead (swapped signs in front of z and vz)
+def psi_S2_inverted_stereographic(r):
+
+        x, y, z, vx, vy, vz = r[0], r[1], r[2], r[3], r[4], r[5]
+
+        return jnp.array([
+            x / (1 + z),
+            y / (1 + z),
+            vx / (1 + z) - x * vz / ((1 + z) ** 2),
+            vy / (1 + z) - y * vz / ((1 + z) ** 2)
+        ])
+
+
+#I calculated the derivates manually. These exclude the north pole
 def phi_S2_stereographic(z):
 
-    x = z[0:2]
-    v = z[2:4]
+        x = z[0:2]
+        v = z[2:4]
+        h = 1 + x[0] ** 2 + x[1] ** 2
 
-    h = 1 + x[0]**2 + x[1]**2
+        r0 = 2 * x[0] / h
+        r1 = 2 * x[1] / h
+        r2 = (h - 2) / h
+        r3 = (2 - 2 * x[0] ** 2 + 2 * x[1] ** 2) / (h ** 2) * v[0] - 4 * x[0] * x[1] / (h ** 2) * v[1]
+        r4 = -4 * x[0] * x[1] / (h ** 2) * v[0] + (2 + 2 * x[0] ** 2 - 2 * x[1] ** 2) / (h ** 2) * v[1]
+        r5 = 4 * x[0] / (h ** 2) * v[0] + 4 * x[1] / (h ** 2) * v[1]
 
-    r0 = 2*x[0]/h
-    r1 = 2*x[1]/h
-    r2 = (h-2)/h
-    r3 = (2-2*x[0]**2+2*x[1]**2)/(h**2)*v[0] - 4*x[0]*x[1]/(h**2)*v[1]
-    r4 = - 4*x[0]*x[1]/(h**2)*v[0] + (2+2*x[0]**2-2*x[1]**2)/(h**2)*v[1]
-    r5 = 4*x[0]/(h**2)*v[0] + 4*x[1]/(h**2)*v[1]
+        return jnp.array([r0, r1, r2, r3, r4, r5])
 
-    return jnp.array([r0,r1,r2,r3,r4,r5])
 
-def g_S2_steregraphic(x):
+#these exclude the south pole instead (just swapped signs in r2 and r5)
+def phi_S2_inverted_stereographic(z):
 
-    h = 1 + x[0]**2 + x[1]**2
+        x = z[0:2]
+        v = z[2:4]
+        h = 1 + x[0] ** 2 + x[1] ** 2
 
-    return jnp.array([[4/(h**2),0],[0,4/(h**2)]])
+        r0 = 2 * x[0] / h
+        r1 = 2 * x[1] / h
+        r2 = -(h - 2) / h
+        r3 = (2 - 2 * x[0] ** 2 + 2 * x[1] ** 2) / (h ** 2) * v[0] - 4 * x[0] * x[1] / (h ** 2) * v[1]
+        r4 = -4 * x[0] * x[1] / (h ** 2) * v[0] + (2 + 2 * x[0] ** 2 - 2 * x[1] ** 2) / (h ** 2) * v[1]
+        r5 = -4 * x[0] / (h ** 2) * v[0] - 4 * x[1] / (h ** 2) * v[1]
 
-def scalarproduct_S2_stereographic(x,u,v):
-    return u @ g_S2_steregraphic(x) @ v
+        return jnp.array([r0, r1, r2, r3, r4, r5])
+
+
+#the metric is the same in the default and inverted case
+def g_S2_stereographic(x):
+
+        h = 1 + x[0] ** 2 + x[1] ** 2
+
+        return jnp.array([
+            [4 / (h ** 2), 0.0],
+            [0.0, 4 / (h ** 2)]
+        ])
+
 
 """
 two sphere S^2 in the chart (-2,2)_xi x (-2,2)_eta normal coordinates.

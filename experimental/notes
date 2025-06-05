@@ -1,18 +1,12 @@
-The main point of doing this multi chart implementation is this:
-
-You don't want to go back to the dataspace while doing dynamics.
-Therefore you need to know which chart you are in, and where all the dataset points from
+We don't want to go back to the dataspace while doing dynamics.
+Therefore we need to know which chart we are in, and where all the dataset points from
 the relevant coordinate domain are in that chart (latent) and wether they are interior or boundary points.
+This is why we now work with a state (chart_id, z) per default rather than with just an array z.
 
-A decision needs to be made of how exactly this is handled. You now not only need to evolve a latent point z
-but some knowledge on the current chart too. This means either and ID system for the charts and then you evolve
-a current_chart_ID variable or having a "chart" object saved as the current_chart and evolve that.
-The latter is of course less efficient, but an ID system can be arbitrary and thus unless implemented very thoughtfully
-might be hard to understand later or by third persons.
-
-
-
-Another thing is that the model is now tied to the dataset more intimately. I almost need to have the dataset in the model
-and then when doing training taking it from the model and building a dataloader from it.
+The model is now tied to the dataset more intimately. We need to have the dataset in the model
+and then when doing training take it from the model and building a dataloader from it.
 A thing with the dataset in the latent space is that if the encoder changes, it does too.
 So how to do this in a modular and efficient way?
+--> Need to build a smart graph strucuture, capable of being used for training and chart switching analysis
+    (know for each point in the current chart if it is an interior or boundary point,
+     and if a boundary, from what other chart is it an interior?)
