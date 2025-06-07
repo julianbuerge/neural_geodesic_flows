@@ -1,3 +1,10 @@
+"""
+Test everything that we've implemented so far:
+
+- create a multi chart tangent bundle for the two sphere
+- calculate some geodesic on it with chart switching and plot it
+"""
+
 import jax
 import jax.numpy as jnp
 
@@ -10,7 +17,9 @@ from core.template_psi_phi_g_functions_analytical import (
     psi_S2_stereographic,
     phi_S2_stereographic,
     g_S2_stereographic,
-
+    psi_S2_spherical,
+    phi_S2_spherical,
+    g_S2_spherical
 )
 
 from core.template_psi_phi_g_functions_neural_networks import (
@@ -27,11 +36,12 @@ from experimental.inference import (
 )
 
 from experimental.atlas import (
+    create_coordinate_domains,
     Chart,
 )
 
 from experimental.tangent_bundle import (
-    TangetBundle,
+    TangetBundle_multi_chart_atlas as TangetBundle,
 )
 
 ### load the sphere data ###
@@ -40,25 +50,18 @@ data, _ = load_dataset(name = "sphere_trajectories_train", size = size)
 
 trajectories, times = data
 
-### manually create 2 coordinate domains ###
+### create 2 coordinate domains ###
 
 #extract and flatten positions (x, y, z)
-positions = trajectories[..., 0:3].reshape(-1, 3)  # shape (size*time, 3)
-
-z_vals = positions[:, 2]
-
-#create boolean masks
-mask_upper = z_vals > -0.2
-mask_lower = z_vals < 0.2
+sphere = trajectories[..., 0:3].reshape(-1, 3)  # shape (size*time, 3)
 
 #apply masks to get coordinate domains
-extended_upper_hemisphere = positions[mask_upper]
-extended_lower_hemisphere = positions[mask_lower]
+extended_upper_hemisphere, extended_lower_hemisphere = create_coordinate_domains(sphere, k = 2, extension_degree = 0)
 
 #initialize chart eqx.modules
-psi_extended_upper_hemisphere = psi_S2_inverted_stereographic
-phi_extended_upper_hemisphere = phi_S2_inverted_stereographic
-g_extended_upper_hemisphere = identity_metric({'dim_M':2})
+psi_extended_upper_hemisphere = psi_S2_spherical#psi_S2_inverted_stereographic
+phi_extended_upper_hemisphere = phi_S2_spherical#phi_S2_inverted_stereographic
+g_extended_upper_hemisphere = g_S2_spherical#g_S2_stereographic#identity_metric({'dim_M':2})
 
 psi_extended_lower_hemisphere = psi_S2_stereographic
 phi_extended_lower_hemisphere = phi_S2_stereographic
@@ -82,18 +85,19 @@ sphere_atlas = (chart_upper_hemisphere, chart_lower_hemisphere)
 ### build a spherebundle and test global dynamics ###
 sphere_bundle = TangetBundle(atlas = sphere_atlas)
 
+
 #initial point in the chart (consists of initial theta, phi, v^theta, v^phi)
-initial_point = jnp.array([0.3, 0.8, -1.0, -0.5])
+initial_point = jnp.array([0.5, -0.4, -0.9, 0.3])
 chart_id = 1
 
 initial_state = (chart_id, initial_point)
 
 
 #integration time
-t = 8.0
+t = 8
 
 #integration steps
-steps = 100
+steps = 250
 
 #visualize the geodesic in data space and in the charts
 sphere = parametrized_surface(parametrization_S2_spherical, chartdomain_S2_spherical)

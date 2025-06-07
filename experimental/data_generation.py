@@ -1,3 +1,8 @@
+"""
+Here we create a synthetic geodesics dataset on the full two sphere.
+This is analogous to the toy problem from the master thesis, just now on the entire sphere.
+"""
+
 import jax
 import jax.numpy as jnp
 

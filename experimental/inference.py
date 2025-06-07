@@ -1,5 +1,5 @@
 """
-Inference methods for multi-chart NGFs
+Inference methods for multi-chart NGFs. These are currently a bit ad-hoc to test what we've implemented so far.
 """
 
 import jax

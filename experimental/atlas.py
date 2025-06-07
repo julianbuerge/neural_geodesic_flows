@@ -1,11 +1,52 @@
+"""
+Module containing several classes and methods with which a multi chart atlas can work.
+
+Overview:
+- an atlas will be a tuple of Chart instances
+- each Chart contains a CoordinateDomain instance and three functions: psi, phi, g.
+- A CoordinateDomain consists of interior and boundary points, to allow some neat domain switching logic
+    ---> all these are combined in this intended way in the main multi chart NGF model, the class TangetBundle_multi_chart_atlas
+
+- create_coordinate_domains and create_atlas are methods meant to be used for learning, starting with a dataset
+  and ending up with a tuple "atlas" that can be passed to an instance of TangetBundle_multi_chart_atlas
+"""
+
 import jax
 import jax.numpy as jnp
 
 import equinox as eqx
 
+#patch of a manifold. We have interior and boundary points.
+#the boundary points are meant to overlap with some other domain.
+#each boundary points uniquely belong to the interior of another domain
+#the index of which is saved in boundary_new_chart_ids
+#(these ids must be managed whereever we use instances of this class)
+class CoordinateDomain(eqx.Module):
+
+    #centroid point of the domain
+    centroid: jnp.ndarray
+
+    #collection of interior points
+    interior_points: jnp.ndarray
+
+    #collection of boundary points, those overlap with the interior of other charts
+    boundary_points: jnp.ndarray
+
+    #each boundary point uniquely lays in the interior of another chart, this array holds the ids of these other charts
+    boundary_new_chart_ids: jnp.ndarray
+
+    def __init__(self, centroid, interior_points, boundary_points, boundary_new_chart_ids):
+
+        self.centroid = centroid
+        self.interior_points = interior_points
+        self.boundary_points = boundary_points
+        self.boundary_new_chart_ids = boundary_new_chart_ids
+
+#The main NGF model TangetBundle_multi_chart_atlas has as its core a tuple "atlas"
+#of Chart instances. These are all responsible for a certain coordinate domain
 class Chart(eqx.Module):
 
-    coordinate_domain : jnp.ndarray
+    coordinate_domain : CoordinateDomain
 
     psi: callable
     phi: callable
@@ -117,65 +158,148 @@ class Chart(eqx.Module):
 
         return y_out
 
-"""
+
+#CURRENTLY HARDCODED FOR THE TWO SPHERE WITH TWO COORDIANTE DOMAINS: SLIGHTLY EXTENDED UPPER AND LOWER HEMISPHERES
 #this method turns a manifold given as a collection of data points into
 #a partition of clusters. It then extends the clusters to overlaping clusters.
-#these are the domains. It returns these domains, with each point marked as possibly multiple of the following
-#"interior, boundary, centroid"
+#these are the domains. It returns these domains in the tuple format specified in the class Chart
 def create_coordinate_domains(dataset, k, extension_degree):
 
     #returns tuple (or better different format?) of clusters, each point marked as interior, and one as the centroid
     def k_means(dataset, k):
-
         pass
 
     #increases a cluster with neighbouring points, marked as boundary
     def extend_cluster(cluster, extension_degree):
-
         pass
 
-
-    #find tuple (or better different format?) of initial clusters
-    clusters = k_means(dataset, k)
-
-    #extend all clusters
-    #...extend_cluster(cluster, extension_degree)...
+    #expect dataset with points (y1, y2, y3) and extract the y3 coordinate
+    y3_vals = dataset[:, 2]
 
 
-    return extended_clusters
+    #create boolean masks for the interior points
+    mask_upper = y3_vals > 0.0
+    mask_lower = y3_vals < 0.0
+
+    upper_interior_points = dataset[mask_upper]
+    lower_interior_points = dataset[mask_lower]
 
 
-#given a tuple of coordinate domains (partition of the dataset)
-#assign a psi,phi,g function to each, based on some class initializer (which has to be an eqx.Module taking two arguments: a dictionary and a key)
-#and then return a tuple of Charts:
+    #create boolean masks for the boundary points
+    mask_boundary_upper = (y3_vals > -0.2) & (y3_vals <= 0.0)
+    mask_boundary_lower = (y3_vals < 0.2) & (y3_vals >= 0.0)
+
+    upper_boundary_points = dataset[mask_boundary_upper]
+    lower_boundary_points = dataset[mask_boundary_lower]
+
+    #assign the indices of the other
+    upper_boundary_new_chart_ids = jnp.ones(upper_boundary_points.shape[0], dtype=int) * 1  # belong to the interior of chart 1
+    lower_boundary_new_chart_ids = jnp.ones(lower_boundary_points.shape[0], dtype=int) * 0  # belong to the interior of chart 0
+
+    #create centroids
+    upper_centroid =  jnp.array([0.0,0.0,1.0])
+    lower_centroid =  jnp.array([0.0,0.0,-1.0])
+
+
+    #finally create the coordinate_domains of the correct structure
+    upper_coordinate_domain = CoordinateDomain(upper_centroid,
+                                               upper_interior_points,
+                                               upper_boundary_points,
+                                               upper_boundary_new_chart_ids)
+    lower_coordinate_domain = CoordinateDomain(lower_centroid,
+                                               lower_interior_points,
+                                               lower_boundary_points,
+                                               lower_boundary_new_chart_ids)
+
+    return (upper_coordinate_domain, lower_coordinate_domain)
+
+
+#given a tuple of coordinate domains
+#assign a psi,phi,g function to each, based on some class initializer
+#(which has to be an eqx.Module taking two arguments: a dictionary and a key)
+#and then return a tuple of Chart instances:
 #atlas = (chart_1, chart_2, ..., chart_k)
-def initialize_chart_functions(coordinatedomains: tuple,
-                               psi_initializer: callable,
-                               phi_initializer: callable,
-                               g_initializer: callable,
-                               psi_arguments: dict,
-                               phi_arguments: dict,
-                               g_arguments: dict,
-                               key = jax.random.PRNGKey(0)):
+def create_atlas(domains: tuple,
+                 psi_initializer: callable,
+                 phi_initializer: callable,
+                 g_initializer: callable,
+                 psi_arguments: dict,
+                 phi_arguments: dict,
+                 g_arguments: dict,
+                 key = jax.random.PRNGKey(0)):
 
     psi_key, phi_key, g_key = jax.random.split(key, 3)
     psi_keys = jax.random.split(psi_key, len(domains))
     phi_keys = jax.random.split(phi_key, len(domains))
     g_keys = jax.random.split(g_key, len(domains))
 
-    charts = []
+    atlas = ()
 
-    for i, domain in enumerate(coordinate_domains):
+    for i, domain in enumerate(domains):
 
         psi = psi_initializer(psi_arguments, keys[i])
         phi = phi_initializer(phi_arguments, phi_keys[i])
         g = g_initializer(g_arguments, g_keys[i])
 
-        chart = Chart(coordinate_domain=domain, psi=psi, phi=phi, g=g)
+        chart = Chart(coordinate_domain = domain,
+                      psi = psi,
+                      phi = phi,
+                      g = g)
 
-        charts.append(chart)
-
-    atlas = tuple(charts)
+        atlas = atlas + (chart,)
 
     return atlas
-"""
+
+
+
+
+#NOT USED AT THE MOMENT, EXCEPT IN (ALSO NOT USED AND INCOMPLETE) TangetBundle_partition_of_unity_atlas
+class Neural_partition_of_unity(eqx.Module):
+    #neural network that takes an input x and outputs a smooth assignment of numbers p_1,...,p_k in [0,1]
+    #such that p_1 + ... + p_k = 1
+
+    layers: list
+
+    arguments : dict
+    classname: str
+
+    #dictionary "arguments" has to hold in_size (int), amount_of_domains (int), hidden_sizes (list of ints)
+    def __init__(self, arguments, key = jax.random.PRNGKey(0)):
+
+        #verify that essentialkeys are provided
+        required_keys = ['in_size', 'amount_of_domains', 'hidden_sizes']
+        for dict_key in required_keys:
+            if dict_key not in arguments:
+                raise ValueError(f"Missing required argument: '{dict_key}'")
+
+        #initialize random keys
+        keys = jax.random.split(key, len(arguments['hidden_sizes']) + 1)
+
+        #construct layer sizes based on input, hidden, and output sizes
+        layer_sizes = [arguments['in_size']] + arguments['hidden_sizes'] + [arguments['amount_of_domains']]
+        self.layers = [eqx.nn.Linear(layer_sizes[i], layer_sizes[i + 1], key=keys[i]) for i in range(len(layer_sizes) - 1)]
+
+        #assign remaining member variables
+        self.arguments = arguments
+        self.classname = "Neural_partition_of_unity"
+
+    def mollifier(self, c):
+
+        return jnp.where(c > 0, jnp.exp(-1/c), 0.0)
+
+    def __call__(self, x):
+
+        for layer in self.layers[:-1]:
+
+            x = jax.nn.silu(layer(x))
+
+        #array of shape (amount_of_charts,)
+        c = self.layers[-1](x)
+
+        #make them be in [0, 1]
+        p = jax.vmap(self.mollifier)(c)
+
+        #normalize such that the sum equals 1
+        p = p / jnp.sum(p)
+
+        return p
