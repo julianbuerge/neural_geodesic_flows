@@ -70,6 +70,7 @@ and from the cloned directory installing all requirements:
 ```
 pip install -r requirements.txt
 ```
+If you have a JAX compatible GPU it is much recommended to install the GPU version of JAX instead. The code will run significantly faster. See [the official installation guide](https://docs.jax.dev/en/latest/installation.html).
 
 ### Running a minimal example
 
