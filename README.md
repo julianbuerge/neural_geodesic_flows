@@ -2,7 +2,7 @@
 
 Neural geodesic flows (NGFs) are a scientific machine learning model that combines
 neural ODEs and computational differential geometry. [This master thesis](https://doi.org/10.3929/ethz-b-000733724),
-written by Julian Bürge, supervised through [Dr. Ben Moseley](https://github.com/benmoseley), explains them in detail. The project is featured in the [Scalable SciML lab of the Imperial college London](https://scalable-sciml-lab.org/projects/machine-learning-with-geodesic-flows/).
+written by Julian Bürge, supervised through [Dr. Ben Moseley](https://github.com/benmoseley), explains them in detail. We (Bürge, O'Donnell, Moseley) published [this workshop paper on NGFs](https://openreview.net/forum?id=I3VyHmamHB) at EurIps 2025. The project is featured in the [Scalable SciML lab of the Imperial college London](https://scalable-sciml-lab.org/projects/machine-learning-with-geodesic-flows/).
 
 <p align="center">
     <img src="images/training.gif" alt="Example of a NGF model predicting geodesic dynamics on a sphere." width=90%>
