@@ -1,27 +1,17 @@
+**/__pycache__/
+**/wandb/
 .direnv/
+
 
 notes
 experimental/notes
-
 playground.py
 playground2.py
+
 applications/generate_gif_pngs.py
 applications/JAX_version_tests.py
-
-#dataset file size too large
-data/datasets/Navier*
 applications/master_thesis/PDE*
 
-wandb/
-
-__pycache__
-
-core/__pycache__
-tests/__pycache__
-applications/__pycache__
-applications/analytical_geometry/__pycache__
-applications/master_thesis/__pycache__
-applications/master_thesis/HNN/__pycache__
-data/logs/wandb
+data/datasets/Navier*
 data/models/for_gif
 images/for_gif
